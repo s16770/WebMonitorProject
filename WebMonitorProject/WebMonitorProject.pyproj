@@ -4,6 +4,7 @@
     <Name>WebMonitorProject</Name>
     <RootNamespace>WebMonitorProject</RootNamespace>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+    <TestFramework>Pytest</TestFramework>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -31,6 +32,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="manage.py" />
+    <Compile Include="Users\admin.py" />
+    <Compile Include="Users\apps.py" />
+    <Compile Include="Users\migrations\__init__.py" />
+    <Compile Include="Users\models.py" />
+    <Compile Include="Users\tests.py" />
+    <Compile Include="Users\views.py" />
+    <Compile Include="Users\__init__.py" />
     <Compile Include="WebMonitorProject\__init__.py" />
     <Compile Include="WebMonitorProject\settings.py" />
     <Compile Include="WebMonitorProject\urls.py" />
@@ -49,16 +57,19 @@
   <ItemGroup>
     <Content Include="libman.json" />
     <Content Include="requirements.txt" />
+    <Content Include="Users\templates\Users\login.html" />
+    <Content Include="Users\templates\Users\logout.html" />
     <Content Include="WebMonitor\static\WebMonitor\main.css" />
     <Content Include="WebMonitor\templates\WebMonitor\base.html" />
     <Content Include="WebMonitor\templates\WebMonitor\dashboard.html" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Styles\" />
+    <Folder Include="Users\" />
+    <Folder Include="Users\migrations\" />
+    <Folder Include="Users\templates\" />
+    <Folder Include="Users\templates\Users\" />
     <Folder Include="WebMonitorProject\" />
     <Folder Include="WebMonitorProject\Controllers\" />
-    <Folder Include="WebMonitorProject\Models\" />
-    <Folder Include="WebMonitorProject\Services\" />
     <Folder Include="WebMonitor\" />
     <Folder Include="WebMonitor\migrations\" />
     <Folder Include="WebMonitor\static\" />
