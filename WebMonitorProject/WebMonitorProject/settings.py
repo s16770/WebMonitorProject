@@ -30,7 +30,7 @@ ALLOWED_HOSTS = []
 # Application references
 # https://docs.djangoproject.com/en/2.1/ref/settings/#std:setting-INSTALLED_APPS
 INSTALLED_APPS = [
-    # Add your apps here to enable them
+    'background_task',
     'WebMonitor.apps.WebMonitorConfig',
     'Users.apps.UsersConfig',
     'crispy_forms',
