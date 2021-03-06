@@ -62,6 +62,9 @@
     <Content Include="requirements.txt" />
     <Content Include="Users\templates\Users\login.html" />
     <Content Include="Users\templates\Users\logout.html" />
+    <Content Include="WebMonitor\images\green_dot.png" />
+    <Content Include="WebMonitor\images\grey_dot.png" />
+    <Content Include="WebMonitor\images\red_dot.png" />
     <Content Include="WebMonitor\static\WebMonitor\main.css" />
     <Content Include="WebMonitor\templates\WebMonitor\base.html" />
     <Content Include="WebMonitor\templates\WebMonitor\dashboard.html" />
@@ -75,6 +78,7 @@
     <Folder Include="WebMonitorProject\Controllers\" />
     <Folder Include="WebMonitor\" />
     <Folder Include="WebMonitor\migrations\" />
+    <Folder Include="WebMonitor\images\" />
     <Folder Include="WebMonitor\scripts\" />
     <Folder Include="WebMonitor\static\" />
     <Folder Include="WebMonitor\static\WebMonitor\" />

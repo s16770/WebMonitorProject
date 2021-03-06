@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 device = Device.objects.get(name="SW_Internal")
 
-#command = "SnmpWalk -r:" + device.ipaddress + " -c: " + device.community_name + "  -os:.1.3.6.1.2.1.2.2.1.8.33 -op:..1.3.6.1.2.1.2.2.1.8.34 -q"
+command = "SnmpWalk -r:" + device.ipaddress + " -c: " + device.community_name + "  -os:.1.3.6.1.2.1.2.2.1.8.33 -op:..1.3.6.1.2.1.2.2.1.8.34 -q"
 command = 'dir'
 
 @background(schedule=5)
@@ -25,7 +25,6 @@ def heartbeat():
     print('TEST')
 
 
-heartbeat()
 
 
 
