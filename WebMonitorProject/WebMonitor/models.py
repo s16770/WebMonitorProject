@@ -20,18 +20,18 @@ class Device(models.Model):
         return self.name
 
     def checkConnection(device, oidfirst, oidlast):
-        time.sleep(8)
+        time.sleep(4)
         command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + oidfirst + " -op:" + oidlast + " -q"
         val = 3
-        val = subprocess.run(command, shell=True, capture_output=True)
-        print(val.stdout.decode())
-        if val.stdout.decode()[0] == "1":
-            device.status = True
-        elif val.stdout.decode()[0] == '2':
-            device.status = False
-        else:
-            device.status = None
-        device.save()
+        while(True):
+            val = subprocess.run(command, shell=True, capture_output=True)
+            if val.stdout.decode()[0] == "1":
+                device.status = True
+            elif val.stdout.decode()[0] == '2':
+                device.status = False
+            else:
+                device.status = None
+            device.save()
 
     #def test2(dev):
     #    list = [True, False, None]
