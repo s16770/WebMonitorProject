@@ -47,9 +47,6 @@
     <Compile Include="WebMonitor\apps.py" />
     <Compile Include="WebMonitor\migrations\__init__.py" />
     <Compile Include="WebMonitor\models.py" />
-    <Compile Include="WebMonitor\scripts\ex2200_heartbeat.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="WebMonitor\tests.py" />
     <Compile Include="WebMonitor\urls.py">
       <SubType>Code</SubType>
@@ -79,7 +76,6 @@
     <Folder Include="WebMonitor\" />
     <Folder Include="WebMonitor\migrations\" />
     <Folder Include="WebMonitor\images\" />
-    <Folder Include="WebMonitor\scripts\" />
     <Folder Include="WebMonitor\static\" />
     <Folder Include="WebMonitor\static\WebMonitor\" />
     <Folder Include="WebMonitor\templates\" />
