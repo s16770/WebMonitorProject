@@ -7,10 +7,14 @@ urlpatterns = [
     path('', views.dashboard, name='webmonitorhome'),
 ]
 
-d = Device.objects.get(name='ADServer')
+d1 = Device.objects.get(name='ADServer')
+d2 = Device.objects.get(name='SW_Internal')
 
-t = threading.Thread(target=Device.checkConnection, args=[d, '.1.3.6.1.2.1.2.2.1.8.33', '..1.3.6.1.2.1.2.2.1.8.34'])
+Device.test3(d1)
+Device.test3(d2)
 
-Device.test3(d)
+t1 = threading.Thread(target=Device.checkConnection, args=[d1, '.1.3.6.1.2.1.2.2.1.8.33', '..1.3.6.1.2.1.2.2.1.8.34'])
+t2 = threading.Thread(target=Device.checkConnection, args=[d2, '.1.3.6.1.2.1.2.2.1.8.12', '.1.3.6.1.2.1.2.2.1.8.13'])
 
-t.start()
+t1.start()
+t2.start()

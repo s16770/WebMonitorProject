@@ -1,5 +1,5 @@
 from django.db import models
-from subprocess import check_output
+import subprocess
 import time
 import random
 
@@ -20,9 +20,10 @@ class Device(models.Model):
         return self.name
 
     def checkConnection(device, oidfirst, oidlast):
+        time.sleep(12)
         command = "SnmpWalk -r:" + device.ipaddress + " -c: " + device.community_name + "  -os:" + oidfirst + " -op:" + oidlast + " -q"
-        val = check_output(command, shell=True)
         val = 3
+        val = subprocess.run(command, shell=True, stderr=subprocess.DEVNULL)
         if val == 1:
             device.status = True
         elif val == 2:
