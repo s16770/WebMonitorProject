@@ -1,9 +1,9 @@
 from django.db import models
+from bs4 import BeautifulSoup as BS
 import subprocess
 import time
 import random
-
-
+import requests
 
 class Device(models.Model):
     name = models.CharField(max_length=50)
@@ -20,10 +20,11 @@ class Device(models.Model):
         return self.name
 
     def checkConnection(device, oidfirst, oidlast):
-        time.sleep(4)
+        time.sleep(5)
         command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + oidfirst + " -op:" + oidlast + " -q"
         val = 3
         while(True):
+            time.sleep(5)
             val = subprocess.run(command, shell=True, capture_output=True)
             if val.stdout.decode()[0] == "1":
                 device.status = True
@@ -33,20 +34,20 @@ class Device(models.Model):
                 device.status = None
             device.save()
 
-    #def test2(dev):
-    #    list = [True, False, None]
-    #    while(True):
-    #        r = random.choice(list)
-    #        dev.status = r
-    #        dev.save()
-    #        time.sleep(4.0)
-
     def test3(dev):
         dev.status = False
         dev.save()
 
-    def test4(dev):
-        time.sleep(5)
-        dev.status = True
-        dev.save()
-            
+    def getSessions(ipaddress):
+        payload = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
+                   'type': 'op', 
+                   'cmd': '<show><session><all><filter><destination>' + ipaddress + '</destination><count>yes</count></filter></all></session></show>'
+                   }
+        r = requests.get(url='https://10.210.41.170/api/', params=payload, verify=False)
+
+        response = r.text
+        parsed_response = BS(response, features="html.parser")
+
+        result = parsed_response.find('result').find('member').text
+
+        return result
