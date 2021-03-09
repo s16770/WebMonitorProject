@@ -24,7 +24,7 @@ class Device(models.Model):
         command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + oidfirst + " -op:" + oidlast + " -q"
         val = 3
         while(True):
-            time.sleep(5)
+            time.sleep(10)
             val = subprocess.run(command, shell=True, capture_output=True)
             if val.stdout.decode()[0] == "1":
                 device.status = True
@@ -38,16 +38,20 @@ class Device(models.Model):
         dev.status = False
         dev.save()
 
-    def getSessions(ipaddress):
-        payload = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
-                   'type': 'op', 
-                   'cmd': '<show><session><all><filter><destination>' + ipaddress + '</destination><count>yes</count></filter></all></session></show>'
-                   }
-        r = requests.get(url='https://10.210.41.170/api/', params=payload, verify=False)
+    def getSessions(device):
+        time.sleep(5)
+        while(True):
+            payload = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
+                       'type': 'op', 
+                       'cmd': '<show><session><all><filter><destination>' + device.ipaddress + '</destination><count>yes</count></filter></all></session></show>'
+                       }
+            r = requests.get(url='https://10.210.41.170/api/', params=payload, verify=False)
 
-        response = r.text
-        parsed_response = BS(response, features="html.parser")
+            response = r.text
+            parsed_response = BS(response, features="html.parser")
 
-        result = parsed_response.find('result').find('member').text
+            result = parsed_response.find('result').find('member').text
 
-        return result
+            device.sessions = result
+            device.save()
+            time.sleep(10)

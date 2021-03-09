@@ -17,7 +17,10 @@ Device.test3(d2)
 #t1 = threading.Thread(target=Device.checkConnection, args=[d1, '.1.3.6.1.2.1.2.2.1.8.12', '.1.3.6.1.2.1.2.2.1.8.13'])
 #t2 = threading.Thread(target=Device.checkConnection, args=[d2, '.1.3.6.1.2.1.2.2.1.8.33', '..1.3.6.1.2.1.2.2.1.8.34'])
 
+t3 = threading.Thread(target=Device.getSessions, args=[d1])
+t4 = threading.Thread(target=Device.getSessions, args=[d2])
+
 #t1.start()
 #t2.start()
-
-print(Device.getSessions('10.210.134.20'))
+t3.start()
+t4.start()
