@@ -24,15 +24,17 @@ class Device(models.Model):
         command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + oidfirst + " -op:" + oidlast + " -q"
         val = 3
         while(True):
-            time.sleep(10)
             val = subprocess.run(command, shell=True, capture_output=True)
-            if val.stdout.decode()[0] == "1":
+            if val.stdout.decode() == "":
+                device.status = None
+            elif val.stdout.decode()[0] == "1":
                 device.status = True
             elif val.stdout.decode()[0] == '2':
                 device.status = False
             else:
                 device.status = None
             device.save()
+            time.sleep(10)
 
     def test3(dev):
         dev.status = False

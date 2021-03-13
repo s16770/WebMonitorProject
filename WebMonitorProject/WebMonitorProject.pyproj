@@ -65,6 +65,7 @@
     <Content Include="WebMonitor\static\WebMonitor\main.css" />
     <Content Include="WebMonitor\templates\WebMonitor\base.html" />
     <Content Include="WebMonitor\templates\WebMonitor\dashboard.html" />
+    <Content Include="WebMonitor\templates\WebMonitor\deviceInfo.html" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Users\" />
