@@ -9,8 +9,8 @@ def dashboard(request):
     }
     return render(request, 'WebMonitor/dashboard.html', context)
 
-def deviceInfo(request):
+def deviceInfo(request, devicename):
     context = {
-        'devInfo': Device.objects.get(name='ADServer')
+        'devicename': Device.objects.get(name=devicename)
     }
     return render(request, 'WebMonitor/deviceInfo.html', context)
