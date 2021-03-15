@@ -5,23 +5,34 @@ import time
 import random
 import requests
 
+class Producent(models.Model):
+    
+    producent_id = models.IntegerField()
+    name = models.CharField(max_length=50)
+    status_osOID = models.CharField(max_length=50)
+    status_opOID = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+
 class Device(models.Model):
     name = models.CharField(max_length=50)
     community_name = models.CharField(max_length=50)
     type = models.CharField(max_length=30)
-    producent = models.CharField(max_length=50)
+    producent = models.ForeignKey(Producent, on_delete=models.PROTECT, null=True, blank=True, default=None)
     model = models.CharField(max_length=50)
     macaddress = models.CharField(max_length=20)
     ipaddress = models.GenericIPAddressField()
-    sessions = models.PositiveIntegerField()
+    sessions = models.PositiveIntegerField(editable=False)
     status = models.NullBooleanField()
 
     def __str__(self):
         return self.name
 
-    def checkConnection(device, oidfirst, oidlast):
+    def checkConnection(device):
         time.sleep(5)
-        command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + oidfirst + " -op:" + oidlast + " -q"
+        command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.status_osOID + " -op:" + device.producent.status_opOID + " -q"
         val = 3
         while(True):
             val = subprocess.run(command, shell=True, capture_output=True)
@@ -57,3 +68,4 @@ class Device(models.Model):
             device.sessions = result
             device.save()
             time.sleep(10)
+
