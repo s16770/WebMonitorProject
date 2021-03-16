@@ -26,7 +26,7 @@ class Device(models.Model):
     macaddress = models.CharField(max_length=20)
     ipaddress = models.GenericIPAddressField()
     sessions = models.PositiveIntegerField(editable=False)
-    status = models.NullBooleanField(editable=False)
+    status = models.BooleanField(editable=False, null=True)
 
     def __str__(self):
         return self.name
