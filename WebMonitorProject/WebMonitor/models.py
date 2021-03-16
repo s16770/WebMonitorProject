@@ -26,27 +26,10 @@ class Device(models.Model):
     macaddress = models.CharField(max_length=20)
     ipaddress = models.GenericIPAddressField()
     sessions = models.PositiveIntegerField(editable=False)
-    status = models.NullBooleanField()
+    status = models.NullBooleanField(editable=False, default=None)
 
     def __str__(self):
         return self.name
-
-    def checkConnection(device):
-        time.sleep(5)
-        command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.status_osOID + " -op:" + device.producent.status_opOID + " -q"
-        val = 3
-        while(True):
-            val = subprocess.run(command, shell=True, capture_output=True)
-            if val.stdout.decode() == "":
-                device.status = None
-            elif val.stdout.decode()[0] == "1":
-                device.status = True
-            elif val.stdout.decode()[0] == '2':
-                device.status = False
-            else:
-                device.status = None
-            device.save()
-            time.sleep(10)
 
     def snmp_poll():
         devices = Device.objects.all()
@@ -57,6 +40,8 @@ class Device(models.Model):
         for d in devices:
             pool.apply_async(Device.checkConnection, (d,))
 
+        pool.close()
+
     def api_poll():
         devices = Device.objects.all()
         pool_size = Device.objects.all().count()
@@ -66,9 +51,27 @@ class Device(models.Model):
         for d in devices:
             pool.apply_async(Device.getSessions, (d,))
 
-    def test3(dev):
-        dev.status = False
-        dev.save()
+        pool.close()
+    
+    def checkConnection(device):
+        time.sleep(5)
+        command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.status_osOID + " -op:" + device.producent.status_opOID + " -q"
+        val = 3
+        while(True):
+            try:
+                val = subprocess.run(command, shell=True, capture_output=True)
+                if val.stdout.decode() == "":
+                    device.status = None
+                elif val.stdout.decode()[0] == "1":
+                    device.status = True
+                elif val.stdout.decode()[0] == '2':
+                    device.status = False
+                else:
+                    device.status = None
+                device.save()
+                time.sleep(10)
+            except:
+                print("SnmpWalk failure")
 
     def getSessions(device):
         time.sleep(5)

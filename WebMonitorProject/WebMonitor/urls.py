@@ -9,12 +9,6 @@ urlpatterns = [
     path('device/<devicename>', views.deviceInfo, name='wmdeviceinfo'),
 ]
 
-d1 = Device.objects.get(name='ADServer')
-d2 = Device.objects.get(name='SW_Internal')
-
-Device.test3(d1)
-Device.test3(d2)
-
 Device.snmp_poll()
 Device.api_poll()
 
