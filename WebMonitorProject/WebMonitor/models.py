@@ -41,7 +41,6 @@ class Device(models.Model):
             pool.apply_async(Device.checkConnection, (d,))
 
         pool.close()
-        pool.join()
 
     def api_poll():
         devices = Device.objects.all()
@@ -53,7 +52,6 @@ class Device(models.Model):
             pool.apply_async(Device.getSessions, (d,))
 
         pool.close()
-        pool.join()
     
     def checkConnection(device):
         time.sleep(5)
