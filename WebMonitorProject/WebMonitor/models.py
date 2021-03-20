@@ -23,9 +23,8 @@ class Device(models.Model):
     type = models.CharField(max_length=30)
     producent = models.ForeignKey(Producent, on_delete=models.PROTECT, null=True, blank=True, default=None)
     model = models.CharField(max_length=50)
-    macaddress = models.CharField(max_length=20)
     ipaddress = models.GenericIPAddressField()
-    sessions = models.PositiveIntegerField(editable=False)
+    sessions = models.PositiveIntegerField(editable=False, null=True)
     status = models.BooleanField(editable=False, null=True)
 
     def __str__(self):
