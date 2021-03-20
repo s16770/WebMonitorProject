@@ -9,8 +9,7 @@ urlpatterns = [
     path('device/<devicename>', views.deviceInfo, name='wmdeviceinfo'),
 ]
 
-Device.snmp_poll()
-Device.api_poll()
+Device.poll()
 
 #t1 = threading.Thread(target=Device.checkConnection, args=[d1])
 #t2 = threading.Thread(target=Device.checkConnection, args=[d2])

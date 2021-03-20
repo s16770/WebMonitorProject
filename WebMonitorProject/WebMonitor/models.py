@@ -4,7 +4,7 @@ import subprocess
 import time
 import random
 import requests
-from multiprocessing.pool import ThreadPool as Pool
+import threading
 
 class Producent(models.Model):
     
@@ -31,27 +31,15 @@ class Device(models.Model):
     def __str__(self):
         return self.name
 
-    def snmp_poll():
+    def poll():
         devices = Device.objects.all()
-        pool_size = Device.objects.all().count()
-
-        pool = Pool(pool_size)
 
         for d in devices:
-            pool.apply_async(Device.checkConnection, (d,))
-
-        pool.close()
-
-    def api_poll():
-        devices = Device.objects.all()
-        pool_size = Device.objects.all().count()
-
-        pool = Pool(pool_size)
-
-        for d in devices:
-            pool.apply_async(Device.getSessions, (d,))
-
-        pool.close()
+            t1 = threading.Thread(target=Device.checkConnection, args=[d])
+            t2 = threading.Thread(target=Device.getSessions, args=[d])
+            
+            t1.start()
+            t2.start()
     
     def checkConnection(device):
         time.sleep(5)
