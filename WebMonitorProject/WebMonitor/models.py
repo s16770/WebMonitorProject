@@ -63,16 +63,28 @@ class Device(models.Model):
     def getSessions(device):
         time.sleep(5)
         while(True):
-            payload = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
+            payload_dest = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
                        'type': 'op', 
                        'cmd': '<show><session><all><filter><destination>' + device.ipaddress + '</destination><count>yes</count></filter></all></session></show>'
                        }
-            r = requests.get(url='https://10.210.41.170/api/', params=payload, verify=False)
+            payload_source = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
+                       'type': 'op', 
+                       'cmd': '<show><session><all><filter><source>' + device.ipaddress + '</source><count>yes</count></filter></all></session></show>'
+                       }
+            
+            rd = requests.get(url='https://10.210.41.170/api/', params=payload_dest, verify=False)
+            rs = requests.get(url='https://10.210.41.170/api/', params=payload_source, verify=False)
 
-            response = r.text
-            parsed_response = BS(response, features="html.parser")
+            response_d = rd.text
+            response_s = rs.text
+            
+            parsed_response_d = BS(response_d, features="html.parser")
+            parsed_response_s = BS(response_s, features="html.parser")
 
-            result = parsed_response.find('result').find('member').text
+            result_d = parsed_response_d.find('result').find('member').text
+            result_s = parsed_response_s.find('result').find('member').text
+
+            result = int(result_d) + int(result_s)
 
             device.sessions = result
             device.save()
