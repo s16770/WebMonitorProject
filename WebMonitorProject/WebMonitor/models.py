@@ -31,62 +31,62 @@ class Device(models.Model):
         return self.name
 
     def poll():
-        devices = Device.objects.all()
+        while(True):
+            devices = Device.objects.all()
 
-        for d in devices:
-            t1 = threading.Thread(target=Device.checkConnection, args=[d])
-            t2 = threading.Thread(target=Device.getSessions, args=[d])
-            
-            t1.start()
-            t2.start()
-    
+            for d in devices:
+                t1 = threading.Thread(target=Device.checkConnection, args=[d])
+                t2 = threading.Thread(target=Device.getSessions, args=[d])
+
+                t1.start()
+                t2.start()
+
+                t1.join()
+                t2.join()
+
+            time.sleep(10)
+   
     def checkConnection(device):
-        time.sleep(5)
         command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.status_osOID + " -op:" + device.producent.status_opOID + " -q"
         val = 3
-        while(True):
-            try:
-                val = subprocess.run(command, shell=True, capture_output=True)
-                if val.stdout.decode() == "":
-                    device.status = None
-                elif val.stdout.decode()[0] == "1":
-                    device.status = True
-                elif val.stdout.decode()[0] == '2':
-                    device.status = False
-                else:
-                    device.status = None
-                device.save()
-                time.sleep(10)
-            except:
-                print("SnmpWalk failure")
+        try:
+            val = subprocess.run(command, shell=True, capture_output=True)
+            if val.stdout.decode() == "":
+                device.status = None
+            elif val.stdout.decode()[0] == "1":
+                device.status = True
+            elif val.stdout.decode()[0] == '2':
+                device.status = False
+            else:
+                device.status = None
+            device.save()
+        except:
+            print("SnmpWalk failure")
 
     def getSessions(device):
-        time.sleep(5)
-        while(True):
-            payload_dest = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
+        payload_dest = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
                        'type': 'op', 
                        'cmd': '<show><session><all><filter><destination>' + device.ipaddress + '</destination><count>yes</count></filter></all></session></show>'
                        }
-            payload_source = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
+        payload_source = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
                        'type': 'op', 
                        'cmd': '<show><session><all><filter><source>' + device.ipaddress + '</source><count>yes</count></filter></all></session></show>'
                        }
             
-            rd = requests.get(url='https://10.210.41.170/api/', params=payload_dest, verify=False)
-            rs = requests.get(url='https://10.210.41.170/api/', params=payload_source, verify=False)
+        rd = requests.get(url='https://10.210.41.170/api/', params=payload_dest, verify=False)
+        rs = requests.get(url='https://10.210.41.170/api/', params=payload_source, verify=False)
 
-            response_d = rd.text
-            response_s = rs.text
+        response_d = rd.text
+        response_s = rs.text
             
-            parsed_response_d = BS(response_d, features="html.parser")
-            parsed_response_s = BS(response_s, features="html.parser")
+        parsed_response_d = BS(response_d, features="html.parser")
+        parsed_response_s = BS(response_s, features="html.parser")
 
-            result_d = parsed_response_d.find('result').find('member').text
-            result_s = parsed_response_s.find('result').find('member').text
+        result_d = parsed_response_d.find('result').find('member').text
+        result_s = parsed_response_s.find('result').find('member').text
 
-            result = int(result_d) + int(result_s)
+        result = int(result_d) + int(result_s)
 
-            device.sessions = result
-            device.save()
-            time.sleep(10)
+        device.sessions = result
+        device.save()
 
