@@ -6,6 +6,46 @@ import random
 import requests
 import threading
 
+api_key = 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA=='
+
+class Zone(models.Model):
+    name = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.name
+
+class Firewall(models.Model):
+
+    domain_name = models.CharField(max_length=50)
+    ipaddress = models.GenericIPAddressField()
+    zones = models.ManyToManyField(Zone, null=True, blank=True)
+
+    def __str__(self):
+        return self.domain_name
+
+    def getZones(firewall):
+            
+            payload = {'key': api_key, 
+                       'type': 'config',
+                       'action': 'get',
+                       'xpath': "/config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/zone"
+                       }
+            
+            r = requests.get(url='https://' + firewall.ipaddress + '/api/', params=payload, verify=False)
+
+            response = r.content
+            soup = BS(response, features='lxml')
+
+            result = soup.find('zone').find_all('entry')
+
+            for elem in result:
+                if not Zone.objects.filter(name = elem.get('name')):
+                   new_zone = Zone(name = elem.get('name'))
+                   new_zone.save()
+
+            #<show><session><all><filter><from>Trust</from><destination>10.210.134.60</destination></filter></all></session></show>
+
+
 class Producent(models.Model):
     
     producent_id = models.IntegerField()
@@ -24,6 +64,7 @@ class Device(models.Model):
     producent = models.ForeignKey(Producent, on_delete=models.PROTECT, null=True, blank=True, default=None)
     model = models.CharField(max_length=50)
     ipaddress = models.GenericIPAddressField()
+    nat_ipaddress = models.GenericIPAddressField(null=True)
     sessions = models.PositiveIntegerField(editable=False, null=True)
     status = models.BooleanField(editable=False, null=True)
 
@@ -31,9 +72,12 @@ class Device(models.Model):
         return self.name
 
     def poll():
+
+        Firewall.getZones(Firewall.objects.get(domain_name='pa-vm.wmproject.com'))
+
         while(True):
             devices = Device.objects.all()
-
+            
             for d in devices:
                 t1 = threading.Thread(target=Device.checkConnection, args=[d])
                 t2 = threading.Thread(target=Device.getSessions, args=[d])
@@ -64,11 +108,11 @@ class Device(models.Model):
             print("SnmpWalk failure")
 
     def getSessions(device):
-        payload_dest = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
+        payload_dest = {'key': api_key, 
                        'type': 'op', 
                        'cmd': '<show><session><all><filter><destination>' + device.ipaddress + '</destination><count>yes</count></filter></all></session></show>'
                        }
-        payload_source = {'key': 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA==', 
+        payload_source = {'key': api_key, 
                        'type': 'op', 
                        'cmd': '<show><session><all><filter><source>' + device.ipaddress + '</source><count>yes</count></filter></all></session></show>'
                        }
@@ -90,3 +134,24 @@ class Device(models.Model):
         device.sessions = result
         device.save()
 
+        def getSessionDetails(firewall, device, zone):
+            
+            payload = {'key': api_key, 
+                       'type': 'op', 
+                       'cmd': '<show><session><all><filter><from>' + zone.name + '</from><destination>' + device.ipaddress +  '</destination></filter></all></session></show>'
+                       }
+
+            payload_nat = {'key': api_key, 
+                       'type': 'op', 
+                       'cmd': '<show><session><all><filter><from>' + zone.name + '</from><destination>' + device.nat_ipaddress +  '</destination></filter></all></session></show>'
+                       }
+            
+            r = requests.get(url='https://' + firewall.ipaddress + '/api/', params=payload, verify=False)
+
+            response = r.content
+            soup = BS(response, features='lxml')
+
+            result = soup.find('zone').find_all('entry')
+
+            
+        

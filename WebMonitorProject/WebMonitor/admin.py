@@ -1,6 +1,8 @@
 from django.contrib import admin
 from .models import Device
 from .models import Producent
+from .models import Firewall
 
 admin.site.register(Device)
 admin.site.register(Producent)
+admin.site.register(Firewall)
