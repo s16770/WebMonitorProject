@@ -1,7 +1,25 @@
 ﻿{% extends "WebMonitor/base.html" %}
 
+{% block headcontent %}
+    <meta http-equiv="refresh" content="15">
+{% endblock headcontent %}
+
 {% block content %}
 
+<div class="row row-cols-1 row-cols-md-4 g-4">
+    <div class="col">
+        <div class="card h-100">
+            <img src="" class="card-img-top" alt="graph">
+            <div class="card-body">
+                <h5 class="card-title">Card title</h5>
+                <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+            </div>
+            <div class="card-footer">
+                <small class="text-muted">Last updated 3 mins ago</small>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="accordion accordion-flush" id="accordionFlushExample">
     {% for zone in zones %}
@@ -24,10 +42,10 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <th scope="row">{{ devicename.name }}</th>
-                                <td>{{ devicename.ipaddress }}</td>
-                                <td>{{ devicename.sessions }}</td>
-                                <td>{{ devicename.status }}</td>
+                                <th scope="row">10.210.41.201</th>
+                                <td>BKi</td>
+                                <td>RDP</td>
+                                <td>1 Mb/s</td>
                             </tr>
                         </tbody>
                     </table>
@@ -36,4 +54,7 @@
         </div>
     {% endfor %}
 </div>
+
+
+
 {% endblock content %}

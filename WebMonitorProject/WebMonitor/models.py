@@ -43,7 +43,16 @@ class Firewall(models.Model):
                    new_zone = Zone(name = elem.get('name'))
                    new_zone.save()
 
-            #<show><session><all><filter><from>Trust</from><destination>10.210.134.60</destination></filter></all></session></show>
+
+class Service(models.Model):
+    
+    name = models.CharField(max_length=50)
+    port = models.PositiveIntegerField()
+    service_osOID = models.CharField(max_length=50, null=True)
+    service_opOID = models.CharField(max_length=50, null=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Producent(models.Model):
@@ -52,12 +61,20 @@ class Producent(models.Model):
     name = models.CharField(max_length=50)
     status_osOID = models.CharField(max_length=50)
     status_opOID = models.CharField(max_length=50)
+    transfer_osOID = models.CharField(max_length=50, null=True)
+    transfer_opOID = models.CharField(max_length=50, null=True)
+    temperature_osOID = models.CharField(max_length=50, null=True)
+    temperature_opOID = models.CharField(max_length=50, null=True)
+    storage_osOID = models.CharField(max_length=50, null=True)
+    storage_opOID = models.CharField(max_length=50, null=True)
+    services = models.ManyToManyField(Service, null=True, blank=True)
 
     def __str__(self):
         return self.name
 
 
 class Device(models.Model):
+
     name = models.CharField(max_length=50)
     community_name = models.CharField(max_length=50)
     type = models.CharField(max_length=30)
