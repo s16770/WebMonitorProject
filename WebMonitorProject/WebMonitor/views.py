@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from .models import Device
 from .models import Zone
 
-
 def dashboard(request):
     context = {
         'devices': Device.objects.all()

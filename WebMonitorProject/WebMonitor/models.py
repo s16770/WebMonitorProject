@@ -14,6 +14,8 @@ class Zone(models.Model):
     def __str__(self):
         return self.name
 
+
+
 class Firewall(models.Model):
 
     domain_name = models.CharField(max_length=50)
@@ -90,22 +92,31 @@ class Device(models.Model):
 
     def poll():
 
-        Firewall.getZones(Firewall.objects.get(domain_name='pa-vm.wmproject.com'))
+        firewall = Firewall.objects.get(domain_name='pa-vm.wmproject.com')
+        Firewall.getZones(firewall)
+        zones = Zone.objects.all()
 
         while(True):
             devices = Device.objects.all()
+            
             
             for d in devices:
                 t1 = threading.Thread(target=Device.checkConnection, args=[d])
                 t2 = threading.Thread(target=Device.getSessions, args=[d])
 
+                for z in zones:
+                    t3 = threading.Thread(target=Session.getSessionDetails, args=[firewall, d, z])
+
+
                 t1.start()
                 t2.start()
+                t3.start()
 
                 t1.join()
                 t2.join()
+                t3.join()
 
-            time.sleep(10)
+            time.sleep(15)
    
     def checkConnection(device):
         command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.status_osOID + " -op:" + device.producent.status_opOID + " -q"
@@ -151,24 +162,53 @@ class Device(models.Model):
         device.sessions = result
         device.save()
 
-        def getSessionDetails(firewall, device, zone):
+    
+
+class Session(models.Model):
+    
+    device = models.ForeignKey(Device, on_delete=models.CASCADE)
+    source_zone = models.ForeignKey(Zone, on_delete=models.CASCADE)
+    source_ip = models.CharField(max_length=20)
+    #user = models.CharField(max_length=50, null=True)
+    application = models.CharField(max_length=30)
+    transfer = models.PositiveIntegerField()
+
+    def getSessionDetails(firewall, device, zone):
             
-            payload = {'key': api_key, 
-                       'type': 'op', 
-                       'cmd': '<show><session><all><filter><from>' + zone.name + '</from><destination>' + device.ipaddress +  '</destination></filter></all></session></show>'
-                       }
+        payload = {'key': api_key, 
+                   'type': 'op', 
+                   'cmd': '<show><session><all><filter><from>' + zone.name + '</from><destination>' + device.ipaddress +  '</destination></filter></all></session></show>'
+                    }
 
-            payload_nat = {'key': api_key, 
-                       'type': 'op', 
-                       'cmd': '<show><session><all><filter><from>' + zone.name + '</from><destination>' + device.nat_ipaddress +  '</destination></filter></all></session></show>'
-                       }
+        payload_nat = {'key': api_key, 
+                    'type': 'op', 
+                    'cmd': '<show><session><all><filter><nat>both</nat></filter></all></session></show>'
+                     }
             
-            r = requests.get(url='https://' + firewall.ipaddress + '/api/', params=payload, verify=False)
+        r = requests.get(url='https://10.210.41.170/api/', params=payload, verify=False)
+        rnat = requests.get(url='https://10.210.41.170/api/', params=payload_nat, verify=False)
 
-            response = r.content
-            soup = BS(response, features='lxml')
+        Session.objects.all().delete() #wyczyszczenie poprzednich
 
-            result = soup.find('zone').find_all('entry')
+        response = r.text
+        response_nat = rnat.text
 
-            
+        soup = BS(response, features='lxml')
+        soup_nat = BS(response_nat, features='lxml')
+
+        entries = soup_nat.find_all('entry')
+        result = soup.find_all('entry')
+        result_nat = []
+
+        for e in entries:
+            if e.xdst.get_text() == device.ipaddress:
+                result_nat.append(e)
+       
         
+        session_details = result + result_nat
+
+        for s in session_details:
+            session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), application=s.application.get_text(), transfer=int(s.total-byte-count.get_text())/10)  #total-byte-count do poprawki -> NameError: name 'byte' is not defined
+            session.save()
+
+        print(Session.objects.first())
