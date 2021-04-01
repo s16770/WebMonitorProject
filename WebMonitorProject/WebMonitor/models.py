@@ -33,7 +33,7 @@ class Firewall(models.Model):
                        'xpath': "/config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/zone"
                        }
             
-            r = requests.get(url='https://' + firewall.ipaddress + '/api/', params=payload, verify=False)
+            r = requests.get(url='https://10.210.41.170/api/', params=payload, verify=False)
 
             response = r.content
             soup = BS(response, features='lxml')
@@ -98,7 +98,7 @@ class Device(models.Model):
 
         while(True):
             devices = Device.objects.all()
-            
+            Session.objects.all().delete()
             
             for d in devices:
                 t1 = threading.Thread(target=Device.checkConnection, args=[d])
@@ -107,14 +107,15 @@ class Device(models.Model):
                 for z in zones:
                     t3 = threading.Thread(target=Session.getSessionDetails, args=[firewall, d, z])
 
-
+                    t3.start()
+                    t3.join()
+            
                 t1.start()
                 t2.start()
-                t3.start()
-
+                
                 t1.join()
                 t2.join()
-                t3.join()
+
 
             time.sleep(15)
    
@@ -136,6 +137,7 @@ class Device(models.Model):
             print("SnmpWalk failure")
 
     def getSessions(device):
+
         payload_dest = {'key': api_key, 
                        'type': 'op', 
                        'cmd': '<show><session><all><filter><destination>' + device.ipaddress + '</destination><count>yes</count></filter></all></session></show>'
@@ -169,12 +171,12 @@ class Session(models.Model):
     device = models.ForeignKey(Device, on_delete=models.CASCADE)
     source_zone = models.ForeignKey(Zone, on_delete=models.CASCADE)
     source_ip = models.CharField(max_length=20)
-    #user = models.CharField(max_length=50, null=True)
+    user = models.CharField(max_length=50, null=True)
     application = models.CharField(max_length=30)
     transfer = models.PositiveIntegerField()
 
     def getSessionDetails(firewall, device, zone):
-            
+        
         payload = {'key': api_key, 
                    'type': 'op', 
                    'cmd': '<show><session><all><filter><from>' + zone.name + '</from><destination>' + device.ipaddress +  '</destination></filter></all></session></show>'
@@ -184,23 +186,30 @@ class Session(models.Model):
                     'type': 'op', 
                     'cmd': '<show><session><all><filter><nat>both</nat></filter></all></session></show>'
                      }
+
+        payload_user = {'key': api_key, 
+                    'type': 'op', 
+                    'cmd': '<show><user><ip-user-mapping><all></all></ip-user-mapping></user></show>'
+                     }
             
         r = requests.get(url='https://10.210.41.170/api/', params=payload, verify=False)
         rnat = requests.get(url='https://10.210.41.170/api/', params=payload_nat, verify=False)
-
-        Session.objects.all().delete() #wyczyszczenie poprzednich
-
+        ruser = requests.get(url='https://10.210.41.170/api/', params=payload_user, verify=False)
+        
         response = r.text
         response_nat = rnat.text
+        response_user = ruser.text
 
         soup = BS(response, features='lxml')
         soup_nat = BS(response_nat, features='lxml')
+        soup_user = BS(response_user, features='lxml')
 
-        entries = soup_nat.find_all('entry')
+        user_entries = soup_user.find_all('entry')
+        nat_entries = soup_nat.find_all('entry')
         result = soup.find_all('entry')
         result_nat = []
 
-        for e in entries:
+        for e in nat_entries:
             if e.xdst.get_text() == device.ipaddress:
                 result_nat.append(e)
        
@@ -208,7 +217,11 @@ class Session(models.Model):
         session_details = result + result_nat
 
         for s in session_details:
-            session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), application=s.application.get_text(), transfer=int(s.total-byte-count.get_text())/10)  #total-byte-count do poprawki -> NameError: name 'byte' is not defined
+            username = ""
+            for u in user_entries:
+                if s.source.get_text() == u.ip.get_text():
+                    username = u.user.get_text()
+
+            session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/10)
             session.save()
 
-        print(Session.objects.first())

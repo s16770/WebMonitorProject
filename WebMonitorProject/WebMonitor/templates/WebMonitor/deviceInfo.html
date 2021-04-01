@@ -40,16 +40,20 @@
                                 <th scope="col">Source IP</th>
                                 <th scope="col">User</th>
                                 <th scope="col">Application</th>
-                                <th scope="col">Transfer</th>
+                                <th scope="col">Transfer (Kb)</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <th scope="row">10.210.41.201</th>
-                                <td>BKi</td>
-                                <td>RDP</td>
-                                <td>1 Mb/s</td>
-                            </tr>
+                            {% for session in sessions %}
+                                {% if session.device == devicename and session.source_zone == zone %}
+                                    <tr>
+                                        <th scope="row">{{ session.source_ip }}</th>
+                                        <td>{{ session.user }}</td>
+                                        <td>{{ session.application }}</td>
+                                        <td>{{ session.transfer }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
