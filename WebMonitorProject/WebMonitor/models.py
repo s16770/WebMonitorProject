@@ -1,5 +1,6 @@
 from django.db import models
 from bs4 import BeautifulSoup as BS
+from django.utils import timezone
 import subprocess
 import time
 import random
@@ -69,6 +70,12 @@ class Producent(models.Model):
     temperature_opOID = models.CharField(max_length=50, null=True)
     storage_osOID = models.CharField(max_length=50, null=True)
     storage_opOID = models.CharField(max_length=50, null=True)
+    storage_alloc_osOID = models.CharField(max_length=50, null=True)
+    storage_alloc_opOID = models.CharField(max_length=50, null=True)
+    freestorage_osOID = models.CharField(max_length=50, null=True)
+    freestorage_opOID = models.CharField(max_length=50, null=True)
+    freestorage_alloc_osOID = models.CharField(max_length=50, null=True)
+    freestorage_alloc_opOID = models.CharField(max_length=50, null=True)
     services = models.ManyToManyField(Service, null=True, blank=True)
 
     def __str__(self):
@@ -86,6 +93,8 @@ class Device(models.Model):
     nat_ipaddress = models.GenericIPAddressField(null=True)
     sessions = models.PositiveIntegerField(editable=False, null=True)
     status = models.BooleanField(editable=False, null=True)
+    storage = models.FloatField(null=True)
+    free_storage = models.FloatField(null=True)
 
     def __str__(self):
         return self.name
@@ -136,6 +145,31 @@ class Device(models.Model):
         except:
             print("SnmpWalk failure")
 
+    def checkStorage(device):
+        #SnmpWalk -r:10.210.134.20 -c:ADServer -os:.1.3.6.1.2.1.25.2.3.1.5.0 -op:.1.3.6.1.2.1.25.2.3.1.5.1 -q
+        alloc_size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.storage_alloc_osOID + " -op:" + device.producent.storage_alloc_opOID + " -q"
+        alloc_freesize_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.freestorage_alloc_osOID + " -op:" + device.producent.freestorage_alloc_opOID + " -q"
+        size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.storage_osOID + " -op:" + device.producent.storage_opOID + " -q"
+        freesize_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.freestorage_osOID + " -op:" + device.producent.freestorage_opOID + " -q"
+        try:
+            size_val = subprocess.run(size_com, shell=True, capture_output=True)
+            size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
+            freesize_val = subprocess.run(freesize_com, shell=True, capture_output=True)
+            freesize_alloc_val = subprocess.run(alloc_freesize_com, shell=True, capture_output=True)
+
+            storage_size = int(size_val.stdout.decode())
+            storage_alloc_size = int(size_alloc_val.stdout.decode())
+            freestorage_size = int(freesize_val.stdout.decode())
+            freestorage_alloc_size = int(freesize_alloc_val.stdout.decode())
+
+            GB = 1000000000
+            device.storage = float(storage_size*storage_alloc_size/GB)
+            device.free_storage = float(freestorage_size*freestorage_alloc_size/GB)
+
+            device.save()
+        except:
+            print("SnmpWalk failure")
+
     def getSessions(device):
 
         payload_dest = {'key': api_key, 
@@ -174,6 +208,7 @@ class Session(models.Model):
     user = models.CharField(max_length=50, null=True)
     application = models.CharField(max_length=30)
     transfer = models.PositiveIntegerField()
+    start_time = models.CharField(max_length=30, null=True)
 
     def getSessionDetails(firewall, device, zone):
         
@@ -222,6 +257,7 @@ class Session(models.Model):
                 if s.source.get_text() == u.ip.get_text():
                     username = u.user.get_text()
 
-            session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/10)
+            #ogarnac format daty w ponizszym
+            session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/10, start_time=s.find('start-time').get_text())
             session.save()
 
