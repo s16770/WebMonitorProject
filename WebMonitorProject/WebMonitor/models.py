@@ -91,9 +91,9 @@ class Device(models.Model):
     nat_ipaddress = models.GenericIPAddressField(null=True)
     sessions = models.PositiveIntegerField(editable=False, null=True)
     status = models.BooleanField(editable=False, null=True)
-    storage = models.FloatField(null=True)
-    used_storage = models.FloatField(null=True)
-    free_storage = models.FloatField(null=True)
+    storage = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    used_storage = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    free_storage = models.DecimalField(null=True, decimal_places=2, max_digits=10)
 
     def __str__(self):
         return self.name
@@ -165,7 +165,7 @@ class Device(models.Model):
             GB = 1000000000
             device.storage = float(storage_size*storage_alloc_size/GB)
             device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
-            device.free_storage = float((storage_size*storage_alloc_size) - (usedstorage_size*storage_alloc_size)/GB)
+            device.free_storage = float(((storage_size*storage_alloc_size) - float(usedstorage_size*storage_alloc_size))/GB)
             device.save()
         except:
             print("SnmpWalk failure")
