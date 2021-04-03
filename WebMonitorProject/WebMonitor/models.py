@@ -93,6 +93,7 @@ class Device(models.Model):
     status = models.BooleanField(editable=False, null=True)
     storage = models.FloatField(null=True)
     used_storage = models.FloatField(null=True)
+    free_storage = models.FloatField(null=True)
 
     def __str__(self):
         return self.name
@@ -125,7 +126,6 @@ class Device(models.Model):
                 t1.join()
                 t2.join()
                 t4.join()
-
 
             time.sleep(15)
    
@@ -165,7 +165,7 @@ class Device(models.Model):
             GB = 1000000000
             device.storage = float(storage_size*storage_alloc_size/GB)
             device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
-
+            device.free_storage = float((storage_size*storage_alloc_size) - (usedstorage_size*storage_alloc_size)/GB)
             device.save()
         except:
             print("SnmpWalk failure")
