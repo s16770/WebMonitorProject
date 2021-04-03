@@ -167,11 +167,6 @@ class Device(models.Model):
             device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
 
             device.save()
-            print()
-            print(device.storage)
-            print()
-            print(device.used_storage)
-            print()
         except:
             print("SnmpWalk failure")
 

@@ -13,8 +13,9 @@
             <div class="card-body">
                 <h5 class="card-title">Storage:</h5>
                 <p class="card-text">
-                    Capacity: 2TB
-                    Free: 670GB
+                    Capacity: {{ devicename.storage }}
+                    Used: {{ devicename.used_storage }}
+                    Free: {{ devicename.storage - devicename.used_storage }}
                 </p>
             </div>
             <div class="card-footer">
