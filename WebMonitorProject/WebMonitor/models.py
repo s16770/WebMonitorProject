@@ -64,18 +64,16 @@ class Producent(models.Model):
     name = models.CharField(max_length=50)
     status_osOID = models.CharField(max_length=50)
     status_opOID = models.CharField(max_length=50)
-    transfer_osOID = models.CharField(max_length=50, null=True)
-    transfer_opOID = models.CharField(max_length=50, null=True)
-    temperature_osOID = models.CharField(max_length=50, null=True)
-    temperature_opOID = models.CharField(max_length=50, null=True)
-    storage_osOID = models.CharField(max_length=50, null=True)
-    storage_opOID = models.CharField(max_length=50, null=True)
-    storage_alloc_osOID = models.CharField(max_length=50, null=True)
-    storage_alloc_opOID = models.CharField(max_length=50, null=True)
-    freestorage_osOID = models.CharField(max_length=50, null=True)
-    freestorage_opOID = models.CharField(max_length=50, null=True)
-    freestorage_alloc_osOID = models.CharField(max_length=50, null=True)
-    freestorage_alloc_opOID = models.CharField(max_length=50, null=True)
+    transfer_osOID = models.CharField(max_length=50, null=True, blank=True)
+    transfer_opOID = models.CharField(max_length=50, null=True, blank=True)
+    temperature_osOID = models.CharField(max_length=50, null=True, blank=True)
+    temperature_opOID = models.CharField(max_length=50, null=True, blank=True)
+    storage_osOID = models.CharField(max_length=50, null=True, blank=True)
+    storage_opOID = models.CharField(max_length=50, null=True, blank=True)
+    storage_alloc_osOID = models.CharField(max_length=50, null=True, blank=True)
+    storage_alloc_opOID = models.CharField(max_length=50, null=True, blank=True)
+    usedstorage_osOID = models.CharField(max_length=50, null=True, blank=True)
+    usedstorage_opOID = models.CharField(max_length=50, null=True, blank=True)
     services = models.ManyToManyField(Service, null=True, blank=True)
 
     def __str__(self):
@@ -94,7 +92,7 @@ class Device(models.Model):
     sessions = models.PositiveIntegerField(editable=False, null=True)
     status = models.BooleanField(editable=False, null=True)
     storage = models.FloatField(null=True)
-    free_storage = models.FloatField(null=True)
+    used_storage = models.FloatField(null=True)
 
     def __str__(self):
         return self.name
@@ -112,6 +110,7 @@ class Device(models.Model):
             for d in devices:
                 t1 = threading.Thread(target=Device.checkConnection, args=[d])
                 t2 = threading.Thread(target=Device.getSessions, args=[d])
+                t4 = threading.Thread(target=Device.checkStorage, args=[d])
 
                 for z in zones:
                     t3 = threading.Thread(target=Session.getSessionDetails, args=[firewall, d, z])
@@ -121,9 +120,11 @@ class Device(models.Model):
             
                 t1.start()
                 t2.start()
+                t4.start()
                 
                 t1.join()
                 t2.join()
+                t4.join()
 
 
             time.sleep(15)
@@ -146,27 +147,31 @@ class Device(models.Model):
             print("SnmpWalk failure")
 
     def checkStorage(device):
-        #SnmpWalk -r:10.210.134.20 -c:ADServer -os:.1.3.6.1.2.1.25.2.3.1.5.0 -op:.1.3.6.1.2.1.25.2.3.1.5.1 -q
         alloc_size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.storage_alloc_osOID + " -op:" + device.producent.storage_alloc_opOID + " -q"
-        alloc_freesize_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.freestorage_alloc_osOID + " -op:" + device.producent.freestorage_alloc_opOID + " -q"
         size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.storage_osOID + " -op:" + device.producent.storage_opOID + " -q"
-        freesize_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.freestorage_osOID + " -op:" + device.producent.freestorage_opOID + " -q"
+        usedsize_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.usedstorage_osOID + " -op:" + device.producent.usedstorage_opOID + " -q"
+        size_val = '0'
+        size_alloc_val = '0'
+        usedsize_val = '0'
         try:
             size_val = subprocess.run(size_com, shell=True, capture_output=True)
             size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
-            freesize_val = subprocess.run(freesize_com, shell=True, capture_output=True)
-            freesize_alloc_val = subprocess.run(alloc_freesize_com, shell=True, capture_output=True)
-
+            usedsize_val = subprocess.run(usedsize_com, shell=True, capture_output=True)
+            
             storage_size = int(size_val.stdout.decode())
             storage_alloc_size = int(size_alloc_val.stdout.decode())
-            freestorage_size = int(freesize_val.stdout.decode())
-            freestorage_alloc_size = int(freesize_alloc_val.stdout.decode())
-
+            usedstorage_size = int(usedsize_val.stdout.decode())
+            
             GB = 1000000000
             device.storage = float(storage_size*storage_alloc_size/GB)
-            device.free_storage = float(freestorage_size*freestorage_alloc_size/GB)
+            device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
 
             device.save()
+            print()
+            print(device.storage)
+            print()
+            print(device.used_storage)
+            print()
         except:
             print("SnmpWalk failure")
 
