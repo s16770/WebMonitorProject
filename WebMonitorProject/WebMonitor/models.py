@@ -1,6 +1,7 @@
 from django.db import models
 from bs4 import BeautifulSoup as BS
 from django.utils import timezone
+from urllib3.exceptions import InsecureRequestWarning
 import subprocess
 import time
 import random
@@ -8,6 +9,8 @@ import requests
 import threading
 
 api_key = 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA=='
+
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 class Zone(models.Model):
     name = models.CharField(max_length=30)
@@ -62,22 +65,10 @@ class Producent(models.Model):
     
     producent_id = models.IntegerField()
     name = models.CharField(max_length=50)
-    status_osOID = models.CharField(max_length=50)
-    status_opOID = models.CharField(max_length=50)
-    transfer_osOID = models.CharField(max_length=50, null=True, blank=True)
-    transfer_opOID = models.CharField(max_length=50, null=True, blank=True)
-    temperature_osOID = models.CharField(max_length=50, null=True, blank=True)
-    temperature_opOID = models.CharField(max_length=50, null=True, blank=True)
-    storage_osOID = models.CharField(max_length=50, null=True, blank=True)
-    storage_opOID = models.CharField(max_length=50, null=True, blank=True)
-    storage_alloc_osOID = models.CharField(max_length=50, null=True, blank=True)
-    storage_alloc_opOID = models.CharField(max_length=50, null=True, blank=True)
-    usedstorage_osOID = models.CharField(max_length=50, null=True, blank=True)
-    usedstorage_opOID = models.CharField(max_length=50, null=True, blank=True)
-    services = models.ManyToManyField(Service, null=True, blank=True)
 
     def __str__(self):
         return self.name
+
 
 
 class Device(models.Model):
@@ -88,12 +79,28 @@ class Device(models.Model):
     producent = models.ForeignKey(Producent, on_delete=models.PROTECT, null=True, blank=True, default=None)
     model = models.CharField(max_length=50)
     ipaddress = models.GenericIPAddressField()
-    nat_ipaddress = models.GenericIPAddressField(null=True)
     sessions = models.PositiveIntegerField(editable=False, null=True)
     status = models.BooleanField(editable=False, null=True)
-    storage = models.DecimalField(null=True, decimal_places=2, max_digits=10)
-    used_storage = models.DecimalField(null=True, decimal_places=2, max_digits=10)
-    free_storage = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
+    used_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
+    free_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
+
+    #oids
+    status_osOID = models.CharField(max_length=50, null=True, blank=True)
+    status_opOID = models.CharField(max_length=50, null=True, blank=True)
+    transfer_osOID = models.CharField(max_length=50, null=True, blank=True)
+    transfer_opOID = models.CharField(max_length=50, null=True, blank=True)
+    temperature_osOID = models.CharField(max_length=50, null=True, blank=True)
+    temperature_opOID = models.CharField(max_length=50, null=True, blank=True)
+    cpu_osOID = models.CharField(max_length=50, null=True, blank=True)
+    cpu_opOID = models.CharField(max_length=50, null=True, blank=True)
+    storage_osOID = models.CharField(max_length=50, null=True, blank=True)
+    storage_opOID = models.CharField(max_length=50, null=True, blank=True)
+    storage_alloc_osOID = models.CharField(max_length=50, null=True, blank=True)
+    storage_alloc_opOID = models.CharField(max_length=50, null=True, blank=True)
+    usedstorage_osOID = models.CharField(max_length=50, null=True, blank=True)
+    usedstorage_opOID = models.CharField(max_length=50, null=True, blank=True)
+    services = models.ManyToManyField(Service, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -130,9 +137,11 @@ class Device(models.Model):
             time.sleep(15)
    
     def checkConnection(device):
-        command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.status_osOID + " -op:" + device.producent.status_opOID + " -q"
-        val = 3
+        
         try:
+            command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.status_osOID + " -op:" + device.status_opOID + " -q"
+            val = 3
+        
             val = subprocess.run(command, shell=True, capture_output=True)
             if val.stdout.decode() == "":
                 device.status = None
@@ -147,13 +156,15 @@ class Device(models.Model):
             print("SnmpWalk failure")
 
     def checkStorage(device):
-        alloc_size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.storage_alloc_osOID + " -op:" + device.producent.storage_alloc_opOID + " -q"
-        size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.storage_osOID + " -op:" + device.producent.storage_opOID + " -q"
-        usedsize_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.producent.usedstorage_osOID + " -op:" + device.producent.usedstorage_opOID + " -q"
-        size_val = '0'
-        size_alloc_val = '0'
-        usedsize_val = '0'
+
         try:
+            alloc_size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_alloc_osOID + " -op:" + device.storage_alloc_opOID + " -q"
+            size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_osOID + " -op:" + device.storage_opOID + " -q"
+            usedsize_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.usedstorage_osOID + " -op:" + device.usedstorage_opOID + " -q"
+            size_val = '0'
+            size_alloc_val = '0'
+            usedsize_val = '0'
+        
             size_val = subprocess.run(size_com, shell=True, capture_output=True)
             size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
             usedsize_val = subprocess.run(usedsize_com, shell=True, capture_output=True)
@@ -166,6 +177,23 @@ class Device(models.Model):
             device.storage = float(storage_size*storage_alloc_size/GB)
             device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
             device.free_storage = float(((storage_size*storage_alloc_size) - float(usedstorage_size*storage_alloc_size))/GB)
+            device.save()
+        except:
+            print("SnmpWalk failure")
+
+    #dokonczyc
+    def checkCPU(device):
+        
+        try:
+            alloc_size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.cpu_osOID + " -op:" + device.cpu_opOID + " -q"
+            
+            size_val = '0'
+
+            size_val = subprocess.run(size_com, shell=True, capture_output=True)
+            
+            storage_size = int(size_val.stdout.decode())
+            
+
             device.save()
         except:
             print("SnmpWalk failure")
