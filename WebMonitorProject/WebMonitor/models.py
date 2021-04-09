@@ -214,7 +214,7 @@ class Device(models.Model):
                 temp_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.temperature_osOID + " -op:" + device.temperature_opOID + " -q"
             
                 temp_val = '0'
-                temp_val = subprocess.run(cpu_com, shell=True, capture_output=True)
+                temp_val = subprocess.run(temp_com, shell=True, capture_output=True)
                 temperature = int(temp_val.stdout.decode())
             
                 device.temperature = temperature
