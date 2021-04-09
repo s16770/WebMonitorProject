@@ -84,6 +84,8 @@ class Device(models.Model):
     storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     used_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     free_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
+    cpu_load = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
+    temperature = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
 
     #oids
     status_osOID = models.CharField(max_length=50, null=True, blank=True)
@@ -119,6 +121,8 @@ class Device(models.Model):
                 t1 = threading.Thread(target=Device.checkConnection, args=[d])
                 t2 = threading.Thread(target=Device.getSessions, args=[d])
                 t4 = threading.Thread(target=Device.checkStorage, args=[d])
+                t5 = threading.Thread(target=Device.checkCPU, args=[d])
+                t6 = threading.Thread(target=Device.checkTemperature, args=[d])
 
                 for z in zones:
                     t3 = threading.Thread(target=Session.getSessionDetails, args=[firewall, d, z])
@@ -129,10 +133,14 @@ class Device(models.Model):
                 t1.start()
                 t2.start()
                 t4.start()
+                t5.start()
+                t6.start()
                 
                 t1.join()
                 t2.join()
                 t4.join()
+                t5.join()
+                t6.join()
 
             time.sleep(15)
    
@@ -157,47 +165,64 @@ class Device(models.Model):
 
     def checkStorage(device):
 
-        try:
-            alloc_size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_alloc_osOID + " -op:" + device.storage_alloc_opOID + " -q"
-            size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_osOID + " -op:" + device.storage_opOID + " -q"
-            usedsize_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.usedstorage_osOID + " -op:" + device.usedstorage_opOID + " -q"
-            size_val = '0'
-            size_alloc_val = '0'
-            usedsize_val = '0'
+        if device.storage_osOID != None and device.storage_alloc_osOID != None and device.usedstorage_osOID != None:
+            try:
+                alloc_size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_alloc_osOID + " -op:" + device.storage_alloc_opOID + " -q"
+                size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_osOID + " -op:" + device.storage_opOID + " -q"
+                usedsize_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.usedstorage_osOID + " -op:" + device.usedstorage_opOID + " -q"
+                size_val = '0'
+                size_alloc_val = '0'
+                usedsize_val = '0'
         
-            size_val = subprocess.run(size_com, shell=True, capture_output=True)
-            size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
-            usedsize_val = subprocess.run(usedsize_com, shell=True, capture_output=True)
+                size_val = subprocess.run(size_com, shell=True, capture_output=True)
+                size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
+                usedsize_val = subprocess.run(usedsize_com, shell=True, capture_output=True)
             
-            storage_size = int(size_val.stdout.decode())
-            storage_alloc_size = int(size_alloc_val.stdout.decode())
-            usedstorage_size = int(usedsize_val.stdout.decode())
+                storage_size = int(size_val.stdout.decode())
+                storage_alloc_size = int(size_alloc_val.stdout.decode())
+                usedstorage_size = int(usedsize_val.stdout.decode())
             
-            GB = 1000000000
-            device.storage = float(storage_size*storage_alloc_size/GB)
-            device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
-            device.free_storage = float(((storage_size*storage_alloc_size) - float(usedstorage_size*storage_alloc_size))/GB)
-            device.save()
-        except:
-            print("SnmpWalk failure")
+                GB = 1000000000
+                device.storage = float(storage_size*storage_alloc_size/GB)
+                device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
+                device.free_storage = float(((storage_size*storage_alloc_size) - float(usedstorage_size*storage_alloc_size))/GB)
+                device.save()
+            except:
+                print("SnmpWalk failure")
 
-    #dokonczyc
+
     def checkCPU(device):
         
-        try:
-            alloc_size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.cpu_osOID + " -op:" + device.cpu_opOID + " -q"
+        if device.cpu_osOID != None:   
+            try:
+                cpu_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.cpu_osOID + " -op:" + device.cpu_opOID + " -q"
             
-            size_val = '0'
-
-            size_val = subprocess.run(size_com, shell=True, capture_output=True)
+                cpu_val = '0'
+                cpu_val = subprocess.run(cpu_com, shell=True, capture_output=True)
+                cpu_load = int(cpu_val.stdout.decode())
             
-            storage_size = int(size_val.stdout.decode())
+                device.cpu_load = cpu_load
+                device.save()
+            except:
+                print("SnmpWalk failure")
+
+    
+    def checkTemperature(device):
+        
+        if device.temperature_osOID != None:
+            try:
+                temp_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.temperature_osOID + " -op:" + device.temperature_opOID + " -q"
             
+                temp_val = '0'
+                temp_val = subprocess.run(cpu_com, shell=True, capture_output=True)
+                temperature = int(temp_val.stdout.decode())
+            
+                device.temperature = temperature
+                device.save()
+            except:
+                print("SnmpWalk failure")
 
-            device.save()
-        except:
-            print("SnmpWalk failure")
-
+    
     def getSessions(device):
 
         payload_dest = {'key': api_key, 

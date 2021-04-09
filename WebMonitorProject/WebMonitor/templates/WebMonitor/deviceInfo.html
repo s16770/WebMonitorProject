@@ -7,6 +7,7 @@
 {% block content %}
 
 <div class="row row-cols-1 row-cols-md-4 g-4">
+    {% if devicename.storage_osOID != None %}
     <div class="col">
         <div class="card h-100">
             <img src="" class="card-img-top" alt="graph">
@@ -18,11 +19,35 @@
                     Free: {{ devicename.free_storage }} GB 
                 </p>
             </div>
-            <div class="card-footer">
-                <small class="text-muted">Last updated 2 mins ago</small>
+        </div>
+    </div>
+    {% endif %}
+    {% if devicename.cpu_osOID != None %}
+    <div class="col">
+        <div class="card h-100">
+            <img src="" class="card-img-top" alt="graph">
+            <div class="card-body">
+                <h5 class="card-title">CPU load:</h5>
+                <p class="card-text">
+                    {{ devicename.cpu_load }}
+                </p>
             </div>
         </div>
     </div>
+    {% endif %}
+    {% if devicename.temperature_osOID != None %}
+    <div class="col">
+        <div class="card h-100">
+            <img src="" class="card-img-top" alt="graph">
+            <div class="card-body">
+                <h5 class="card-title">Temperature:</h5>
+                <p class="card-text">
+                    {{ devicename.temperature }} C
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <div class="accordion accordion-flush" id="accordionFlushExample">
