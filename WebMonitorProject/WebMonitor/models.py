@@ -84,8 +84,8 @@ class Device(models.Model):
     storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     used_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     free_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
-    cpu_load = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
-    temperature = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
+    cpu_load = models.PositiveIntegerField(editable=False, null=True)
+    temperature = models.IntegerField(editable=False, null=True)
 
     #oids
     status_osOID = models.CharField(max_length=50, null=True, blank=True)
@@ -229,24 +229,24 @@ class Device(models.Model):
                        'type': 'op', 
                        'cmd': '<show><session><all><filter><destination>' + device.ipaddress + '</destination><count>yes</count></filter></all></session></show>'
                        }
-        payload_source = {'key': api_key, 
-                       'type': 'op', 
-                       'cmd': '<show><session><all><filter><source>' + device.ipaddress + '</source><count>yes</count></filter></all></session></show>'
-                       }
+        #payload_source = {'key': api_key, 
+        #               'type': 'op', 
+        #               'cmd': '<show><session><all><filter><source>' + device.ipaddress + '</source><count>yes</count></filter></all></session></show>'
+        #               }
             
         rd = requests.get(url='https://10.210.41.170/api/', params=payload_dest, verify=False)
-        rs = requests.get(url='https://10.210.41.170/api/', params=payload_source, verify=False)
+        #rs = requests.get(url='https://10.210.41.170/api/', params=payload_source, verify=False)
 
         response_d = rd.text
-        response_s = rs.text
+        #response_s = rs.text
             
         parsed_response_d = BS(response_d, features="html.parser")
-        parsed_response_s = BS(response_s, features="html.parser")
+        #parsed_response_s = BS(response_s, features="html.parser")
 
         result_d = parsed_response_d.find('result').find('member').text
-        result_s = parsed_response_s.find('result').find('member').text
+        #result_s = parsed_response_s.find('result').find('member').text
 
-        result = int(result_d) + int(result_s)
+        result = int(result_d)  # + int(result_s)
 
         device.sessions = result
         device.save()
