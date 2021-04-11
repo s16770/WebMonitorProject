@@ -50,17 +50,6 @@ class Firewall(models.Model):
                    new_zone.save()
 
 
-class Service(models.Model):
-    
-    name = models.CharField(max_length=50)
-    port = models.PositiveIntegerField()
-    service_osOID = models.CharField(max_length=50, null=True)
-    service_opOID = models.CharField(max_length=50, null=True)
-
-    def __str__(self):
-        return self.name
-
-
 class Producent(models.Model):
     
     producent_id = models.IntegerField()
@@ -80,7 +69,7 @@ class Device(models.Model):
     model = models.CharField(max_length=50)
     ipaddress = models.GenericIPAddressField()
     sessions = models.PositiveIntegerField(editable=False, null=True)
-    status = models.BooleanField(editable=False, null=True)
+    status = models.CharField(max_length=50, editable=False, null=True)
     storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     used_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     free_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
@@ -88,21 +77,20 @@ class Device(models.Model):
     temperature = models.IntegerField(editable=False, null=True)
 
     #oids
-    status_osOID = models.CharField(max_length=50, null=True, blank=True)
-    status_opOID = models.CharField(max_length=50, null=True, blank=True)
-    transfer_osOID = models.CharField(max_length=50, null=True, blank=True)
-    transfer_opOID = models.CharField(max_length=50, null=True, blank=True)
-    temperature_osOID = models.CharField(max_length=50, null=True, blank=True)
-    temperature_opOID = models.CharField(max_length=50, null=True, blank=True)
-    cpu_osOID = models.CharField(max_length=50, null=True, blank=True)
-    cpu_opOID = models.CharField(max_length=50, null=True, blank=True)
-    storage_osOID = models.CharField(max_length=50, null=True, blank=True)
-    storage_opOID = models.CharField(max_length=50, null=True, blank=True)
-    storage_alloc_osOID = models.CharField(max_length=50, null=True, blank=True)
-    storage_alloc_opOID = models.CharField(max_length=50, null=True, blank=True)
-    usedstorage_osOID = models.CharField(max_length=50, null=True, blank=True)
-    usedstorage_opOID = models.CharField(max_length=50, null=True, blank=True)
-    services = models.ManyToManyField(Service, null=True, blank=True)
+    status_osOID = models.CharField(max_length=100, null=True, blank=True)
+    status_opOID = models.CharField(max_length=100, null=True, blank=True)
+    transfer_osOID = models.CharField(max_length=100, null=True, blank=True)
+    transfer_opOID = models.CharField(max_length=100, null=True, blank=True)
+    temperature_osOID = models.CharField(max_length=100, null=True, blank=True)
+    temperature_opOID = models.CharField(max_length=100, null=True, blank=True)
+    cpu_osOID = models.CharField(max_length=100, null=True, blank=True)
+    cpu_opOID = models.CharField(max_length=100, null=True, blank=True)
+    storage_osOID = models.CharField(max_length=100, null=True, blank=True)
+    storage_opOID = models.CharField(max_length=100, null=True, blank=True)
+    storage_alloc_osOID = models.CharField(max_length=100, null=True, blank=True)
+    storage_alloc_opOID = models.CharField(max_length=100, null=True, blank=True)
+    usedstorage_osOID = models.CharField(max_length=100, null=True, blank=True)
+    usedstorage_opOID = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -123,6 +111,14 @@ class Device(models.Model):
                 t4 = threading.Thread(target=Device.checkStorage, args=[d])
                 t5 = threading.Thread(target=Device.checkCPU, args=[d])
                 t6 = threading.Thread(target=Device.checkTemperature, args=[d])
+
+                services = Service.objects.filter(device=d)
+
+                for s in services:
+                    t7 = threading.Thread(target=Device.checkServices, args=[d, s])
+
+                    t7.start()
+                    t7.join()
 
                 for z in zones:
                     t3 = threading.Thread(target=Session.getSessionDetails, args=[firewall, d, z])
@@ -152,14 +148,44 @@ class Device(models.Model):
         
             val = subprocess.run(command, shell=True, capture_output=True)
             if val.stdout.decode() == "":
-                device.status = None
+                device.status = 'Unknown'
             elif val.stdout.decode()[0] == "1":
                 device.status = True
             elif val.stdout.decode()[0] == '2':
                 device.status = False
             else:
-                device.status = None
+                device.status = 'Unknown'
             device.save()
+        except:
+            print("SnmpWalk failure")
+
+
+    def checkServices(device, service):
+        
+        try:
+            command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + service.service_osOID + " -op:" + device.service_opOID + " -q"
+            val = 5
+            val = subprocess.run(command, shell=True, capture_output=True)
+
+            def fun(x):
+                return {
+                    '1': 'active',
+                    '2': 'continue-pending',
+                    '3': 'pause-pending',
+                    '4': 'paused'
+                }.get(x, 'Unknown')
+
+            service.status = fun(val.stdout.decode()[0])
+            service.save()
+            #if val.stdout.decode() == "":
+            #    device.status = None
+            #elif val.stdout.decode()[0] == "1":
+            #    device.status = True
+            #elif val.stdout.decode()[0] == '2':
+            #    device.status = False
+            #else:
+            #    device.status = None
+            #device.save()
         except:
             print("SnmpWalk failure")
 
@@ -251,7 +277,17 @@ class Device(models.Model):
         device.sessions = result
         device.save()
 
+
+class Service(models.Model):
     
+    name = models.CharField(max_length=50)
+    device = models.ForeignKey(Device, on_delete=models.PROTECT, default=None)
+    status = models.CharField(max_length=50, editable=False, null=True)
+    service_osOID = models.CharField(max_length=200, null=True)
+    service_opOID = models.CharField(max_length=200, null=True)
+
+    def __str__(self):
+        return self.name
 
 class Session(models.Model):
     

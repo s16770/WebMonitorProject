@@ -48,6 +48,20 @@
         </div>
     </div>
     {% endif %}
+    {% if services %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Services:</h5>
+                <p class="card-text">
+                    {% for service in services %}
+                        {{ service.name }}:  {{ service.status }} <br />
+                    {% endfor %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <div class="accordion accordion-flush" id="accordionFlushExample">
