@@ -144,18 +144,25 @@ class Device(models.Model):
         
         try:
             command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.status_osOID + " -op:" + device.status_opOID + " -q"
-            val = 3
-        
             val = subprocess.run(command, shell=True, capture_output=True)
-            if val.stdout.decode() == "":
-                device.status = 'Unknown'
-            elif val.stdout.decode()[0] == "1":
-                device.status = True
-            elif val.stdout.decode()[0] == '2':
-                device.status = False
-            else:
-                device.status = 'Unknown'
+
+            def fun(x):
+                return {
+                    '1': 'Up',
+                    '2': 'Down'
+                }.get(x, 'Unknown')
+
+            device.status = fun(val.stdout.decode()[0])
             device.save()
+            #if val.stdout.decode() == "":
+            #    device.status = 'Unknown'
+            #elif val.stdout.decode()[0] == "1":
+            #    device.status = True
+            #elif val.stdout.decode()[0] == '2':
+            #    device.status = False
+            #else:
+            #    device.status = 'Unknown'
+            #device.save()
         except:
             print("SnmpWalk failure")
 
@@ -163,8 +170,7 @@ class Device(models.Model):
     def checkServices(device, service):
         
         try:
-            command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + service.service_osOID + " -op:" + device.service_opOID + " -q"
-            val = 5
+            command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + service.service_osOID + " -op:" + service.service_opOID + " -q"
             val = subprocess.run(command, shell=True, capture_output=True)
 
             def fun(x):
