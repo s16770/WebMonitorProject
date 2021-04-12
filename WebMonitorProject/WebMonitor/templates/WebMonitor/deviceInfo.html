@@ -26,7 +26,7 @@
     <div class="col">
         {% if devicename.cpu_load < devicename.cpu_load_warning %}
         <div class="card h-100">
-        {% elif devicename.cpu_load >= devicename.cpu_load_critical %}
+        {% elif devicename.cpu_load > devicename.cpu_load_critical %}
         <div class="card dangerCard">
         {% else %}
         <div class="card warningCard">
@@ -47,10 +47,10 @@
     <div class="col">
         {% if devicename.temperature < devicename.temperature_warning %}
         <div class="card h-100">
-        {% elif devicename.temperature >= devicename.temperature_critical %}
-        <div class="card text-white bg-danger">
+        {% elif devicename.temperature > devicename.temperature_critical %}
+        <div class="card text-white bg-danger mb-3">
         {% else %}
-        <div class="card text-dark bg-warning">
+        <div class="card text-dark bg-warning mb-3">
         {% endif %}
             <img src="" class="card-img-top" alt="graph">
             <div class="card-body">
@@ -60,9 +60,9 @@
                 </p>
             </div>
         </div>
-        </div>
-        </div>
-        </div>
+    </div>
+    </div>
+    </div>
     {% endif %}
     {% if services %}
     <div class="col">

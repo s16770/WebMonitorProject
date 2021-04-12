@@ -20,8 +20,10 @@ footer{
     padding-top: 20px;
 }
 .dangerCard {
-    color: #de1f12;
+    color: red;
+    background-color: red;
 }
 .warningCard {
-    color: #f0df26;
+    color: yellow;
+    background-color: yellow;
 }
