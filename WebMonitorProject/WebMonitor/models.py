@@ -2,7 +2,6 @@ from django.db import models
 from bs4 import BeautifulSoup as BS
 from django.utils import timezone
 from urllib3.exceptions import InsecureRequestWarning
-import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 import subprocess
