@@ -27,9 +27,9 @@
         {% if devicename.cpu_load < devicename.cpu_load_warning %}
         <div class="card h-100">
         {% elif devicename.cpu_load > devicename.cpu_load_critical %}
-        <div class="card dangerCard">
+        <div class="dangerCard">
         {% else %}
-        <div class="card warningCard">
+        <div class="warningCard">
         {% endif %}
             <img src="" class="card-img-top" alt="graph">
             <div class="card-body">
