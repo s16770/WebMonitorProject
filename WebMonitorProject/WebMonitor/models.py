@@ -195,9 +195,9 @@ class Device(models.Model):
 
         if device.storage_osOID != None and device.storage_alloc_osOID != None and device.usedstorage_osOID != None:
             try:
-                alloc_size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_alloc_osOID + " -op:" + device.storage_alloc_opOID + " -q"
-                size_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_osOID + " -op:" + device.storage_opOID + " -q"
-                usedsize_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.usedstorage_osOID + " -op:" + device.usedstorage_opOID + " -q"
+                alloc_size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_alloc_osOID + " -op:" + device.storage_alloc_opOID + " -q"
+                size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_osOID + " -op:" + device.storage_opOID + " -q"
+                usedsize_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.usedstorage_osOID + " -op:" + device.usedstorage_opOID + " -q"
                 size_val = '0'
                 size_alloc_val = '0'
                 usedsize_val = '0'
@@ -227,7 +227,7 @@ class Device(models.Model):
         
         if device.cpu_osOID != None:   
             try:
-                cpu_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.cpu_osOID + " -op:" + device.cpu_opOID + " -q"
+                cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.cpu_osOID + " -op:" + device.cpu_opOID + " -q"
             
                 cpu_val = '0'
                 cpu_val = subprocess.run(cpu_com, shell=True, capture_output=True)
@@ -243,7 +243,7 @@ class Device(models.Model):
         
         if device.temperature_osOID != None:
             try:
-                temp_com = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.temperature_osOID + " -op:" + device.temperature_opOID + " -q"
+                temp_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.temperature_osOID + " -op:" + device.temperature_opOID + " -q"
             
                 temp_val = '0'
                 temp_val = subprocess.run(temp_com, shell=True, capture_output=True)
