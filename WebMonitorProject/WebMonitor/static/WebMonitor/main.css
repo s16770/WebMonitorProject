@@ -19,3 +19,9 @@ footer{
 .table{
     padding-top: 20px;
 }
+.dangerCard {
+    color: #de1f12;
+}
+.warningCard {
+    color: #f0df26;
+}
