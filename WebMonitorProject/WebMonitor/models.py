@@ -60,7 +60,6 @@ class Producent(models.Model):
         return self.name
 
 
-
 class Device(models.Model):
 
     name = models.CharField(max_length=50)
@@ -285,6 +284,16 @@ class Device(models.Model):
         device.sessions = result
         device.save()
 
+
+class Alert(models.Model):
+
+    device = models.ForeignKey(Device, on_delete=models.PROTECT, default=None)
+    message = models.CharField(max_length=180)
+    timestamp = models.DateTimeField()
+    type = models.CharField(max_length=50, default='warning')
+
+    def __str__(self):
+        return self.device + ' - ' + self.message + ' at ' + self.timestamp
 
 class Service(models.Model):
     

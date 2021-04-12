@@ -1,0 +1,19 @@
+﻿{% extends "WebMonitor/base.html" %}
+
+{% block headcontent %}
+    <meta http-equiv="refresh" content="30">
+{% endblock headcontent %}
+
+{% block content %}
+
+<ul class="list-group">
+    {% for alert in alerts %}
+        {% if alert.type == "critical" %}
+            <li class="list-group-item list-group-item-danger">{{ alert }}</li>
+        {% else %}
+            <li class="list-group-item list-group-item-warning">{{ alert }}</li>
+        {% endif %}
+    {% endfor %}
+</ul>
+
+{% endblock content %}

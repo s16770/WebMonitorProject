@@ -4,6 +4,7 @@ from .models import Device
 from .models import Zone
 from .models import Session
 from .models import Service
+from .models import Alert
 
 def dashboard(request):
     context = {
@@ -19,3 +20,9 @@ def deviceInfo(request, devicename):
         'services': Service.objects.filter(device=Device.objects.get(name=devicename))
     }
     return render(request, 'WebMonitor/deviceInfo.html', context)
+
+def alerts(request):
+    context = {
+        'alerts': Alert.objects.all()
+    }
+    return render(request, 'WebMonitor/alerts.html', context)
