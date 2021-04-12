@@ -11,19 +11,14 @@ footer{
     text-align: center;
 }
 .accordion{
-    padding-top: 40px;
+    padding-top: 50px;
+    margin-left: 10%;
+    margin-right: 10%;
 }
-.row{
+.row {
     padding-top: 30px;
 }
 .table{
     padding-top: 20px;
 }
-.dangerCard {
-    color: red;
-    background-color: red;
-}
-.warningCard {
-    color: yellow;
-    background-color: yellow;
-}
+
