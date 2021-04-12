@@ -24,7 +24,13 @@
     {% endif %}
     {% if devicename.cpu_osOID != None %}
     <div class="col">
+        {% if devicename.cpu_load < devicename.cpu_load_warning %}
         <div class="card h-100">
+        {% elif devicename.cpu_load >= devicename.cpu_load_critical %}
+        <div class="card h-100 text-white bg-danger">
+        {% else %}
+        <div class="card h-100 text-dark bg-warning">
+        {% endif %}
             <img src="" class="card-img-top" alt="graph">
             <div class="card-body">
                 <h5 class="card-title">CPU load:</h5>
@@ -33,16 +39,18 @@
                 </p>
             </div>
         </div>
+        </div>
+        </div>
     </div>
     {% endif %}
     {% if devicename.temperature_osOID != None %}
     <div class="col">
         {% if devicename.temperature < devicename.temperature_warning %}
         <div class="card h-100">
-        {% elif devicename.temperature > devicename.temperature_critical %}
-        <div class="card text-white bg-danger">
+        {% elif devicename.temperature >= devicename.temperature_critical %}
+        <div class="card h-100 text-white bg-danger">
         {% else %}
-        <div class="card text-dark bg-warning">
+        <div class="card h-100 text-dark bg-warning">
         {% endif %}
             <img src="" class="card-img-top" alt="graph">
             <div class="card-body">
