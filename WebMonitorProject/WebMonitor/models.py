@@ -2,6 +2,9 @@ from django.db import models
 from bs4 import BeautifulSoup as BS
 from django.utils import timezone
 from urllib3.exceptions import InsecureRequestWarning
+import numpy as np
+import matplotlib.pyplot as plt
+import datetime
 import subprocess
 import time
 import random
@@ -72,9 +75,15 @@ class Device(models.Model):
     status = models.CharField(max_length=50, editable=False, null=True)
     storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     used_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
+    used_storage_warning = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
+    used_storage_critical = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
     free_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     cpu_load = models.PositiveIntegerField(editable=False, null=True)
+    cpu_load_warning = models.PositiveIntegerField(null=True, blank=True)
+    cpu_load_critical = models.PositiveIntegerField(null=True, blank=True)
     temperature = models.IntegerField(editable=False, null=True)
+    temperature_warning = models.IntegerField(null=True, blank=True)
+    temperature_critical = models.IntegerField(null=True, blank=True)
 
     #oids
     status_osOID = models.CharField(max_length=100, null=True, blank=True)
@@ -91,6 +100,13 @@ class Device(models.Model):
     storage_alloc_opOID = models.CharField(max_length=100, null=True, blank=True)
     usedstorage_osOID = models.CharField(max_length=100, null=True, blank=True)
     usedstorage_opOID = models.CharField(max_length=100, null=True, blank=True)
+
+    #storage_his = np.full([480], None)
+    #temperature_his = np.full([480], None)
+    #cpu_his = np.full([480], None)
+    #s_counter = 0
+    #t_counter = 0
+    #c_counter = 0
 
     def __str__(self):
         return self.name
@@ -154,15 +170,6 @@ class Device(models.Model):
 
             device.status = fun(val.stdout.decode()[0])
             device.save()
-            #if val.stdout.decode() == "":
-            #    device.status = 'Unknown'
-            #elif val.stdout.decode()[0] == "1":
-            #    device.status = True
-            #elif val.stdout.decode()[0] == '2':
-            #    device.status = False
-            #else:
-            #    device.status = 'Unknown'
-            #device.save()
         except:
             print("SnmpWalk failure")
 
@@ -183,15 +190,6 @@ class Device(models.Model):
 
             service.status = fun(val.stdout.decode()[0])
             service.save()
-            #if val.stdout.decode() == "":
-            #    device.status = None
-            #elif val.stdout.decode()[0] == "1":
-            #    device.status = True
-            #elif val.stdout.decode()[0] == '2':
-            #    device.status = False
-            #else:
-            #    device.status = None
-            #device.save()
         except:
             print("SnmpWalk failure")
 
@@ -221,6 +219,10 @@ class Device(models.Model):
                 device.save()
             except:
                 print("SnmpWalk failure")
+
+            
+            #storage_his[s_counter] = device.used_storage
+            #timeline = [datetime.datetime.now() + datetime.timedelta(minutes=i) for i in range(480)]
 
 
     def checkCPU(device):

@@ -5,6 +5,7 @@ from .models import Zone
 from .models import Firewall
 import threading
 
+
 urlpatterns = [
     path('', views.dashboard, name='webmonitorhome'),
     path('device/<devicename>', views.deviceInfo, name='wmdeviceinfo'),

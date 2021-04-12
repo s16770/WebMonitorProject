@@ -37,7 +37,13 @@
     {% endif %}
     {% if devicename.temperature_osOID != None %}
     <div class="col">
+        {% if devicename.temperature < devicename.temperature_warning %}
         <div class="card h-100">
+        {% elif devicename.temperature > devicename.temperature_critical %}
+        <div class="card text-white bg-danger mb-3" style="max-width: 18rem;">
+        {% else %}
+        <div class="card text-dark bg-warning mb-3" style="max-width: 18rem;">
+        {% endif %}
             <img src="" class="card-img-top" alt="graph">
             <div class="card-body">
                 <h5 class="card-title">Temperature:</h5>
@@ -46,6 +52,8 @@
                 </p>
             </div>
         </div>
+    </div>
+    </div>
     </div>
     {% endif %}
     {% if services %}
