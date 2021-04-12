@@ -75,7 +75,7 @@ class Device(models.Model):
     used_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     used_storage_warning = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
     used_storage_critical = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
-    used_storage_percentage = 1.0
+    used_storage_percentage = models.FloatField(null=True, blank=True, default=1.0)
     free_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     cpu_load = models.PositiveIntegerField(editable=False, null=True)
     cpu_load_warning = models.PositiveIntegerField(null=True, blank=True)
