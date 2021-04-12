@@ -157,7 +157,7 @@ class Device(models.Model):
     def checkConnection(device):
         
         try:
-            command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.status_osOID + " -op:" + device.status_opOID + " -q"
+            command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.status_osOID + " -op:" + device.status_opOID + " -q"
             val = subprocess.run(command, shell=True, capture_output=True)
 
             def fun(x):
@@ -175,7 +175,7 @@ class Device(models.Model):
     def checkServices(device, service):
         
         try:
-            command = "SnmpWalk -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + service.service_osOID + " -op:" + service.service_opOID + " -q"
+            command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + service.service_osOID + " -op:" + service.service_opOID + " -q"
             val = subprocess.run(command, shell=True, capture_output=True)
 
             def fun(x):
