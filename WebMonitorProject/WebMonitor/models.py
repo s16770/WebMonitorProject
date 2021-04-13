@@ -2,6 +2,8 @@ from django.db import models
 from bs4 import BeautifulSoup as BS
 from django.utils import timezone
 from urllib3.exceptions import InsecureRequestWarning
+from django.utils import timezone
+import pytz
 import datetime
 import subprocess
 import time
@@ -257,10 +259,10 @@ class Device(models.Model):
         
             mes = 'Temperature rose to ' + str(device.temperature) + ' C '
             if device.temperature > device.temperature_critical:
-                alert = Alert(device=device, message=mes, timestamp=datetime.datetime.now(), type="critical")
+                alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
                 alert.save()
             elif device.temperature > device.temperature_warning:
-                alert = Alert(device=device, message=mes, timestamp=datetime.datetime.now(), type="warning")
+                alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="warning")
                 alert.save()
     
     def getSessions(device):
