@@ -2,7 +2,6 @@ from django.db import models
 from bs4 import BeautifulSoup as BS
 from django.utils import timezone
 from urllib3.exceptions import InsecureRequestWarning
-from django.utils import timezone
 import pytz
 import datetime
 import subprocess
@@ -254,16 +253,18 @@ class Device(models.Model):
             
                 device.temperature = temperature
                 device.save()
+
+                mes = device.name + 'Temperature rose to ' + str(device.temperature) + ' C at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                if device.temperature > device.temperature_critical:
+                    alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
+                    alert.save()
+                elif device.temperature > device.temperature_warning:
+                    alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="warning")
+                    alert.save()
             except:
                 print("SnmpWalk failure")
         
-            mes = device.name + 'Temperature rose to ' + str(device.temperature) + ' C at ' +  timezone.now()
-            if device.temperature > device.temperature_critical:
-                alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
-                alert.save()
-            elif device.temperature > device.temperature_warning:
-                alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="warning")
-                alert.save()
+            
     
     def getSessions(device):
 
