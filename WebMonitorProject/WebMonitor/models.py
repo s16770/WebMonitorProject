@@ -255,14 +255,13 @@ class Device(models.Model):
             except:
                 print("SnmpWalk failure")
         
-        mes = 'Temperature rose to ' + device.temperature + ' C '
-
-        if device.temperature > device.temperature_critical:
-            alert = Alert(device=device, message=mes, timestamp=datetime.datetime.now(), type="critical")
-            alert.save()
-        elif device.temperature > device.temperature_warning:
-            alert = Alert(device=device, message=mes, timestamp=datetime.datetime.now(), type="warning")
-            alert.save()
+            mes = 'Temperature rose to ' + device.temperature + ' C '
+            if device.temperature > device.temperature_critical:
+                alert = Alert(device=device, message=mes, timestamp=datetime.datetime.now(), type="critical")
+                alert.save()
+            elif device.temperature > device.temperature_warning:
+                alert = Alert(device=device, message=mes, timestamp=datetime.datetime.now(), type="warning")
+                alert.save()
     
     def getSessions(device):
 
