@@ -302,7 +302,7 @@ class Alert(models.Model):
     type = models.CharField(max_length=50, default='warning')
 
     def __str__(self):
-        return self.device + ' - ' + self.message + ' at ' + self.timestamp
+        return str(self.device) + ' - ' + self.message + ' at ' + str(self.timestamp)
 
 class Service(models.Model):
     
