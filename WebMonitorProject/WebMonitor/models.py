@@ -257,7 +257,7 @@ class Device(models.Model):
             except:
                 print("SnmpWalk failure")
         
-            mes = device.name + 'Temperature rose to ' + str(device.temperature) + ' C at ' +  str(timestamp=timezone.now())
+            mes = device.name + 'Temperature rose to ' + str(device.temperature) + ' C at ' +  timezone.now()
             if device.temperature > device.temperature_critical:
                 alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
                 alert.save()
