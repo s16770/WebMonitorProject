@@ -250,17 +250,19 @@ class Device(models.Model):
                 temp_val = '0'
                 temp_val = subprocess.run(temp_com, shell=True, capture_output=True)
                 temperature = int(temp_val.stdout.decode())
-            
+                
+                mes = device.name + 'Temperature rose to ' + str(device.temperature) + ' C at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                if device.temperature != temperature:
+                    if device.temperature > device.temperature_critical:
+                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
+                        alert.save()
+                    elif device.temperature > device.temperature_warning:
+                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="warning")
+                        alert.save()
+
                 device.temperature = temperature
                 device.save()
 
-                mes = device.name + 'Temperature rose to ' + str(device.temperature) + ' C at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
-                if device.temperature > device.temperature_critical:
-                    alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
-                    alert.save()
-                elif device.temperature > device.temperature_warning:
-                    alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="warning")
-                    alert.save()
             except:
                 print("SnmpWalk failure")
         
