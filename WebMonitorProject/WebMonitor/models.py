@@ -257,7 +257,7 @@ class Device(models.Model):
             except:
                 print("SnmpWalk failure")
         
-            mes = 'Temperature rose to ' + str(device.temperature) + ' C '
+            mes = device.name + 'Temperature rose to ' + str(device.temperature) + ' C at ' +  str(timestamp=timezone.now())
             if device.temperature > device.temperature_critical:
                 alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
                 alert.save()
@@ -302,7 +302,7 @@ class Alert(models.Model):
     type = models.CharField(max_length=50, default='warning')
 
     def __str__(self):
-        return str(self.device) + ' - ' + self.message + ' at ' + str(self.timestamp)
+        return self.message
 
 class Service(models.Model):
     
