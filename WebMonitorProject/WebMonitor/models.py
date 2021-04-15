@@ -187,6 +187,12 @@ class Device(models.Model):
                     '4': 'paused'
                 }.get(x, 'Unknown')
 
+            if service.status != fun(val.stdout.decode()[0]) and fun(val.stdout.decode()[0]) != 'active':
+                mes = device.name + ' ' + service.name + ' changed state to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()))
+                        
+                alert.save()
+
             service.status = fun(val.stdout.decode()[0])
             service.save()
         except:
@@ -210,6 +216,15 @@ class Device(models.Model):
                 storage_size = int(size_val.stdout.decode())
                 storage_alloc_size = int(size_alloc_val.stdout.decode())
                 usedstorage_size = int(usedsize_val.stdout.decode())
+
+                if device.used_storage != float(usedstorage_size*storage_alloc_size/GB):
+                    mes = device.name + 'used storage percentage equal to ' + str(float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB)) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                    if  float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
+                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
+                    elif float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
+                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="warning")
+                        
+                    alert.save()
             
                 GB = 1000000000
                 device.storage = float(storage_size*storage_alloc_size/GB)
@@ -234,7 +249,16 @@ class Device(models.Model):
                 cpu_val = '0'
                 cpu_val = subprocess.run(cpu_com, shell=True, capture_output=True)
                 cpu_load = int(cpu_val.stdout.decode())
-            
+                
+                if device.cpu_load != cpu_load:
+                    mes = device.name + 'CPU load equal to ' + str(cpu_load) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                    if cpu_load > device.cpu_load_critical:
+                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
+                    elif cpu_load > device.cpu_load_warning:
+                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="warning")
+                        
+                    alert.save()
+
                 device.cpu_load = cpu_load
                 device.save()
             except:
@@ -251,14 +275,14 @@ class Device(models.Model):
                 temp_val = subprocess.run(temp_com, shell=True, capture_output=True)
                 temperature = int(temp_val.stdout.decode())
                 
-                mes = device.name + 'Temperature rose to ' + str(device.temperature) + ' C at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                 if device.temperature != temperature:
-                    if device.temperature > device.temperature_critical:
+                    mes = device.name + 'Temperature equal to ' + str(temperature) + 'C at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                    if temperature > device.temperature_critical:
                         alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
-                        alert.save()
-                    elif device.temperature > device.temperature_warning:
+                    elif temperature > device.temperature_warning:
                         alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="warning")
-                        alert.save()
+                    
+                    alert.save()
 
                 device.temperature = temperature
                 device.save()
@@ -266,7 +290,6 @@ class Device(models.Model):
             except:
                 print("SnmpWalk failure")
         
-            
     
     def getSessions(device):
 
