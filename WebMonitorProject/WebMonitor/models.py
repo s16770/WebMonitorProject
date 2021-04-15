@@ -167,6 +167,11 @@ class Device(models.Model):
                     '2': 'Down'
                 }.get(x, 'Unknown')
 
+            if device.status != fun(val.stdout.decode()[0]) and fun(val.stdout.decode()[0]) != 'Up':
+                mes = device.name + 'interface state changed to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()))
+                alert.save()
+
             device.status = fun(val.stdout.decode()[0])
             device.save()
         except:
@@ -190,7 +195,6 @@ class Device(models.Model):
             if service.status != fun(val.stdout.decode()[0]) and fun(val.stdout.decode()[0]) != 'active':
                 mes = device.name + ' ' + service.name + ' changed state to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                 alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()))
-                        
                 alert.save()
 
             service.status = fun(val.stdout.decode()[0])
@@ -220,11 +224,11 @@ class Device(models.Model):
                 if device.used_storage != float(usedstorage_size*storage_alloc_size/GB):
                     mes = device.name + 'used storage percentage equal to ' + str(float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB)) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                     if  float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
-                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
+                        alert.save()
                     elif float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
-                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="warning")
-                        
-                    alert.save()
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
+                        alert.save()
             
                 GB = 1000000000
                 device.storage = float(storage_size*storage_alloc_size/GB)
@@ -243,7 +247,7 @@ class Device(models.Model):
     def checkCPU(device):
         
         if device.cpu_osOID != None:   
-            #try:
+            try:
                 cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.cpu_osOID + " -op:" + device.cpu_opOID + " -q"
             
                 cpu_val = '0'
@@ -253,16 +257,16 @@ class Device(models.Model):
                 if device.cpu_load != cpu_load:
                     mes = device.name + 'CPU load equal to ' + str(cpu_load) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                     if cpu_load > device.cpu_load_critical:
-                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
+                        alert.save()
                     elif cpu_load > device.cpu_load_warning:
-                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="warning")
-                        
-                    alert.save()
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
+                        alert.save()
 
                 device.cpu_load = cpu_load
                 device.save()
-            #except:
-                #print(device.name + " snmpwalk failure - cpu")
+            except:
+                print(device.name + " snmpwalk failure - cpu")
 
     
     def checkTemperature(device):
@@ -278,11 +282,11 @@ class Device(models.Model):
                 if device.temperature != temperature:
                     mes = device.name + 'Temperature equal to ' + str(temperature) + 'C at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                     if temperature > device.temperature_critical:
-                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="critical")
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
+                        alert.save()
                     elif temperature > device.temperature_warning:
-                        alert = Alert(device=device, message=mes, timestamp=timezone.now(), type="warning")
-                    
-                    alert.save()
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
+                        alert.save()        
 
                 device.temperature = temperature
                 device.save()
