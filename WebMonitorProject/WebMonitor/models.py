@@ -243,7 +243,7 @@ class Device(models.Model):
     def checkCPU(device):
         
         if device.cpu_osOID != None:   
-            try:
+            #try:
                 cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.cpu_osOID + " -op:" + device.cpu_opOID + " -q"
             
                 cpu_val = '0'
@@ -261,8 +261,8 @@ class Device(models.Model):
 
                 device.cpu_load = cpu_load
                 device.save()
-            except:
-                print(device.name + " snmpwalk failure - cpu")
+            #except:
+                #print(device.name + " snmpwalk failure - cpu")
 
     
     def checkTemperature(device):
