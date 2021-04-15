@@ -170,7 +170,7 @@ class Device(models.Model):
             device.status = fun(val.stdout.decode()[0])
             device.save()
         except:
-            print("SnmpWalk failure")
+            print(device.name + " snmpwalk failure - connection")
 
 
     def checkServices(device, service):
@@ -196,7 +196,7 @@ class Device(models.Model):
             service.status = fun(val.stdout.decode()[0])
             service.save()
         except:
-            print("SnmpWalk failure")
+            print(device.name + " snmpwalk failure - services")
 
     def checkStorage(device):
 
@@ -233,7 +233,7 @@ class Device(models.Model):
                 device.used_storage_percentage = device.used_storage/device.storage
                 device.save()
             except:
-                print("SnmpWalk failure")
+                print(device.name + " snmpwalk failure - storage")
 
             
             #storage_his[s_counter] = device.used_storage
@@ -262,7 +262,7 @@ class Device(models.Model):
                 device.cpu_load = cpu_load
                 device.save()
             except:
-                print("SnmpWalk failure")
+                print(device.name + " snmpwalk failure - cpu")
 
     
     def checkTemperature(device):
@@ -288,7 +288,7 @@ class Device(models.Model):
                 device.save()
 
             except:
-                print("SnmpWalk failure")
+                print(device.name + " snmpwalk failure - temperature")
         
     
     def getSessions(device):
