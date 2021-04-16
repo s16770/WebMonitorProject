@@ -224,7 +224,7 @@ class Device(models.Model):
                 GB = 1000000000
 
                 usp_tmp = float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB)
-                if float(device.used_storage) != float(usedstorage_size*storage_alloc_size/GB):
+                if device.used_storage != usedstorage_size*storage_alloc_size/GB:
                     mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(usp_tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                     if  float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
                         alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
