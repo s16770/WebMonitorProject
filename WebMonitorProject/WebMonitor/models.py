@@ -223,9 +223,9 @@ class Device(models.Model):
                 usedstorage_size = int(usedsize_val.stdout.decode())
                 GB = 1000000000
 
-                tmp = float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB)
-                if device.used_storage != float(usedstorage_size*storage_alloc_size/GB):
-                    mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                usp_tmp = float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB)
+                if float(device.used_storage) != float(usedstorage_size*storage_alloc_size/GB):
+                    mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(usp_tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                     if  float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
                         alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
                         alert.save()
@@ -238,11 +238,6 @@ class Device(models.Model):
                 device.free_storage = float(((storage_size*storage_alloc_size) - float(usedstorage_size*storage_alloc_size))/GB)
                 device.used_storage_percentage = device.used_storage/device.storage
                 device.save()
-                print()
-                print(device.used_storage)
-                print()
-                print(float(usedstorage_size*storage_alloc_size/GB))
-                print()
             #except:
                 #print(device.name + " snmpwalk failure - storage")
 
