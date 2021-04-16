@@ -2,7 +2,7 @@ from django.db import models
 from bs4 import BeautifulSoup as BS
 from django.utils import timezone
 from urllib3.exceptions import InsecureRequestWarning
-from decimal import Decimal
+from decimal import *
 import pytz
 import datetime
 import subprocess
@@ -232,13 +232,11 @@ class Device(models.Model):
                     elif float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
                         alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
                         alert.save()
-                
-                usp_temp_val = (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB)
-                usp_temp = float(usp_temp_val)
-                device.storage = '{0:.2g}'.format(Decimal(str(float(storage_size*storage_alloc_size/GB))))
-                device.used_storage = '{0:.2g}'.format(Decimal(str(float(usedstorage_size*storage_alloc_size/GB))))
-                device.free_storage = '{0:.2g}'.format(Decimal(str(float(storage_size*storage_alloc_size - usedstorage_size*storage_alloc_size/GB))))
-                device.used_storage_percentage = '{0:.2g}'.format(Decimal(str(usp_temp)))
+
+                device.storage = Decimal(str(float(storage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
+                device.used_storage = Decimal(str(float(usedstorage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
+                device.free_storage = Decimal(str(float(storage_size*storage_alloc_size - usedstorage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
+                device.used_storage_percentage = Decimal(str(float(usedstorage_size*storage_alloc_size/GB)))/Decimal(str(float(storage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
                 device.save()
             except:
                 print(device.name + " snmpwalk failure - storage")
