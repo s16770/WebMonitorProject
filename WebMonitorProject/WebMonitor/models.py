@@ -39,7 +39,7 @@ class Firewall(models.Model):
                        'xpath': "/config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/zone"
                        }
             
-            r = requests.get(url='https://10.210.41.170/api/', params=payload, verify=False)
+            r = requests.get(url='https://' + firewall.domain_name + '/api/', params=payload, verify=False)
 
             response = r.content
             soup = BS(response, features='lxml')
@@ -122,7 +122,7 @@ class Device(models.Model):
             
             for d in devices:
                 t1 = threading.Thread(target=Device.checkConnection, args=[d])
-                t2 = threading.Thread(target=Device.getSessions, args=[d])
+                t2 = threading.Thread(target=Device.getSessions, args=[d, firewall])
                 t4 = threading.Thread(target=Device.checkStorage, args=[d])
                 t5 = threading.Thread(target=Device.checkCPU, args=[d])
                 t6 = threading.Thread(target=Device.checkTemperature, args=[d])
@@ -295,7 +295,7 @@ class Device(models.Model):
                 print(device.name + " snmpwalk failure - temperature")
         
     
-    def getSessions(device):
+    def getSessions(device, firewall):
 
         payload_dest = {'key': api_key, 
                        'type': 'op', 
@@ -306,7 +306,7 @@ class Device(models.Model):
         #               'cmd': '<show><session><all><filter><source>' + device.ipaddress + '</source><count>yes</count></filter></all></session></show>'
         #               }
             
-        rd = requests.get(url='https://10.210.41.170/api/', params=payload_dest, verify=False)
+        rd = requests.get(url='https://' + firewall.domain_name + '/api/', params=payload_dest, verify=False)
         #rs = requests.get(url='https://10.210.41.170/api/', params=payload_source, verify=False)
 
         response_d = rd.text
@@ -372,9 +372,9 @@ class Session(models.Model):
                     'cmd': '<show><user><ip-user-mapping><all></all></ip-user-mapping></user></show>'
                      }
             
-        r = requests.get(url='https://10.210.41.170/api/', params=payload, verify=False)
-        rnat = requests.get(url='https://10.210.41.170/api/', params=payload_nat, verify=False)
-        ruser = requests.get(url='https://10.210.41.170/api/', params=payload_user, verify=False)
+        r = requests.get(url='https://' + firewall.domain_name +'/api/', params=payload, verify=False)
+        rnat = requests.get(url='https://' + firewall.domain_name +'/api/', params=payload_nat, verify=False)
+        ruser = requests.get(url='https://' + firewall.domain_name +'/api/', params=payload_user, verify=False)
         
         response = r.text
         response_nat = rnat.text
