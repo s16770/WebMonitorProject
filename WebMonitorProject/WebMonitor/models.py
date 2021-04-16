@@ -238,6 +238,11 @@ class Device(models.Model):
                 device.free_storage = float(((storage_size*storage_alloc_size) - float(usedstorage_size*storage_alloc_size))/GB)
                 device.used_storage_percentage = device.used_storage/device.storage
                 device.save()
+                print()
+                print(device.used_storage)
+                print()
+                print(float(usedstorage_size*storage_alloc_size/GB))
+                print()
             #except:
                 #print(device.name + " snmpwalk failure - storage")
 
