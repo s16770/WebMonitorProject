@@ -233,11 +233,11 @@ class Device(models.Model):
                         alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
                         alert.save()
                 
-                usp_temp = Decimal(str(float(usedstorage_size*storage_alloc_size/GB)))/Decimal(str(float(storage_size*storage_alloc_size/GB)))
+                usp_temp = Decimal(str(float(usedstorage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))/Decimal(str(float(storage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
                 device.storage = Decimal(str(float(storage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
                 device.used_storage = Decimal(str(float(usedstorage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
                 device.free_storage = Decimal(str(float(storage_size*storage_alloc_size - usedstorage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
-                device.used_storage_percentage = usp_temp.quantize(Decimal('0.01'))
+                device.used_storage_percentage = usp_temp
                 device.save()
             #except:
                 #print(device.name + " snmpwalk failure - storage")
