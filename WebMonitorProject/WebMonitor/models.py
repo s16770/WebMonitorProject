@@ -206,7 +206,7 @@ class Device(models.Model):
     def checkStorage(device):
 
         if device.storage_osOID != None and device.storage_alloc_osOID != None and device.usedstorage_osOID != None:
-            try:
+            #try:
                 alloc_size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_alloc_osOID + " -op:" + device.storage_alloc_opOID + " -q"
                 size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_osOID + " -op:" + device.storage_opOID + " -q"
                 usedsize_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.usedstorage_osOID + " -op:" + device.usedstorage_opOID + " -q"
@@ -232,14 +232,15 @@ class Device(models.Model):
                     elif float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
                         alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
                         alert.save()
-
+                
+                usp_temp = Decimal(str(float(usedstorage_size*storage_alloc_size/GB)))/Decimal(str(float(storage_size*storage_alloc_size/GB)))
                 device.storage = Decimal(str(float(storage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
                 device.used_storage = Decimal(str(float(usedstorage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
                 device.free_storage = Decimal(str(float(storage_size*storage_alloc_size - usedstorage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
-                device.used_storage_percentage = Decimal(str(float(usedstorage_size*storage_alloc_size/GB)))/Decimal(str(float(storage_size*storage_alloc_size/GB))).quantize(Decimal('0.01'))
+                device.used_storage_percentage = usp_temp.quantize(Decimal('0.01'))
                 device.save()
-            except:
-                print(device.name + " snmpwalk failure - storage")
+            #except:
+                #print(device.name + " snmpwalk failure - storage")
 
             
             #storage_his[s_counter] = device.used_storage
