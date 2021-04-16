@@ -237,7 +237,7 @@ class Device(models.Model):
                 print()
                 print(Decimal(device.used_storage).quantize(Decimal('.01')))
                 print()
-                print(Decimal(uss_tmp).quantize(Decimal('.01'))
+                print(Decimal(uss_tmp).quantize(Decimal('.01')))
 
                 device.storage = float(storage_size*storage_alloc_size/GB)
                 device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
