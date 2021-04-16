@@ -2,6 +2,7 @@ from django.db import models
 from bs4 import BeautifulSoup as BS
 from django.utils import timezone
 from urllib3.exceptions import InsecureRequestWarning
+from decimal import Decimal
 import pytz
 import datetime
 import subprocess
@@ -222,8 +223,8 @@ class Device(models.Model):
                 usedstorage_size = int(usedsize_val.stdout.decode())
                 GB = 1000000000
 
-                if device.used_storage != float(usedstorage_size*storage_alloc_size/GB):
-                    mes = device.name + ' used storage percentage equal to ' + str(float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB)) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                if device.used_storage != '{0:.3g}'.format(Decimal(str(float(usedstorage_size*storage_alloc_size/GB)))):
+                    mes = device.name + ' used storage percentage equal to ' + str('{0:.3g}'.format(Decimal(str(float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB))))) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                     if  float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
                         alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
                         alert.save()
@@ -301,24 +302,16 @@ class Device(models.Model):
                        'type': 'op', 
                        'cmd': '<show><session><all><filter><destination>' + device.ipaddress + '</destination><count>yes</count></filter></all></session></show>'
                        }
-        #payload_source = {'key': api_key, 
-        #               'type': 'op', 
-        #               'cmd': '<show><session><all><filter><source>' + device.ipaddress + '</source><count>yes</count></filter></all></session></show>'
-        #               }
-            
+
         rd = requests.get(url='https://' + firewall.domain_name + '/api/', params=payload_dest, verify=False)
-        #rs = requests.get(url='https://10.210.41.170/api/', params=payload_source, verify=False)
 
         response_d = rd.text
-        #response_s = rs.text
             
         parsed_response_d = BS(response_d, features="html.parser")
-        #parsed_response_s = BS(response_s, features="html.parser")
 
         result_d = parsed_response_d.find('result').find('member').text
-        #result_s = parsed_response_s.find('result').find('member').text
 
-        result = int(result_d)  # + int(result_s)
+        result = int(result_d)
 
         device.sessions = result
         device.save()
