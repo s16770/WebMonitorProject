@@ -76,7 +76,7 @@ class Device(models.Model):
     used_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     used_storage_warning = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
     used_storage_critical = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
-    used_storage_percentage = models.FloatField(null=True, blank=True, default=1.0)
+    used_storage_percentage = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
     free_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     cpu_load = models.PositiveIntegerField(editable=False, null=True)
     cpu_load_warning = models.PositiveIntegerField(null=True, blank=True)
@@ -232,11 +232,11 @@ class Device(models.Model):
                     elif float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
                         alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
                         alert.save()
-            
+                
                 device.storage = '{0:.2g}'.format(Decimal(str(float(storage_size*storage_alloc_size/GB))))
                 device.used_storage = '{0:.2g}'.format(Decimal(str(float(usedstorage_size*storage_alloc_size/GB))))
                 device.free_storage = '{0:.2g}'.format(Decimal(str(float(storage_size*storage_alloc_size - usedstorage_size*storage_alloc_size/GB))))
-                device.used_storage_percentage = device.used_storage/device.storage
+                device.used_storage_percentage = '{0:.2g}'.format(Decimal(str(float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB))))
                 device.save()
             #except:
                 #print(device.name + " snmpwalk failure - storage")
