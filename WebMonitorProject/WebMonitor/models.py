@@ -2,6 +2,7 @@ from django.db import models
 from bs4 import BeautifulSoup as BS
 from django.utils import timezone
 from urllib3.exceptions import InsecureRequestWarning
+from decimal import *
 import pytz
 import datetime
 import subprocess
@@ -222,8 +223,9 @@ class Device(models.Model):
                 usedstorage_size = int(usedsize_val.stdout.decode())
                 GB = 1000000000
 
+                tmp = float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB)
                 if device.used_storage != float(usedstorage_size*storage_alloc_size/GB):
-                    mes = device.name + ' used storage percentage equal to ' + str(float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB)) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                    mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                     if  float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
                         alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
                         alert.save()
