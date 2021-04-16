@@ -224,18 +224,19 @@ class Device(models.Model):
                 GB = 1000000000
 
                 usp_tmp = float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB)*100
-                if device.used_storage != usedstorage_size*storage_alloc_size/GB*1.00:
-                    mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(usp_tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
-                    if  float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
-                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
-                        alert.save()
-                    elif float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
-                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
-                        alert.save()
+                if device.used_storage != None:
+                    if str.format(device.used_storage, '.2f') != str.format(usedstorage_size*storage_alloc_size/GB, '.2f'):
+                        mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(usp_tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                        if  float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
+                            alert.save()
+                        elif float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
+                            alert.save()
                 print()
                 print(device.used_storage)
                 print()
-                print(usedstorage_size*storage_alloc_size/GB*1.00)
+                print(str.format(usedstorage_size*storage_alloc_size/GB, '.2f'))
 
                 device.storage = float(storage_size*storage_alloc_size/GB)
                 device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
