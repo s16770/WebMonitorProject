@@ -234,10 +234,10 @@ class Device(models.Model):
                         elif float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
                             alert.save()
-                print()
-                print(Decimal(device.used_storage).quantize(Decimal('.01')))
-                print()
-                print(Decimal(uss_tmp).quantize(Decimal('.01')))
+                    print()
+                    print(Decimal(device.used_storage).quantize(Decimal('.01')))
+                    print()
+                    print(Decimal(uss_tmp).quantize(Decimal('.01')))
 
                 device.storage = float(storage_size*storage_alloc_size/GB)
                 device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
