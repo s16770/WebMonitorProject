@@ -232,12 +232,17 @@ class Device(models.Model):
                     elif float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
                         alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
                         alert.save()
-            
+                print()
+                print(device.used_storage)
+                print()
+                print(usedstorage_size*storage_alloc_size/GB)
+
                 device.storage = float(storage_size*storage_alloc_size/GB)
                 device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
                 device.free_storage = float(((storage_size*storage_alloc_size) - float(usedstorage_size*storage_alloc_size))/GB)
                 device.used_storage_percentage = device.used_storage/device.storage
                 device.save()
+
             #except:
                 #print(device.name + " snmpwalk failure - storage")
 
