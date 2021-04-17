@@ -167,7 +167,7 @@ class Device(models.Model):
                 }.get(x, 'Unknown')
 
             if device.status != fun(val.stdout.decode()[0]) and fun(val.stdout.decode()[0]) != 'Up':
-                mes = device.name + 'interface state changed to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                mes = device.name + ' interface state changed to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                 alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()))
                 alert.save()
 
@@ -259,7 +259,7 @@ class Device(models.Model):
                 
                 if device.cpu_load != None:
                     if device.cpu_load != cpu_load and device.cpu_load < cpu_load:
-                        mes = device.name + 'CPU load equal to ' + str(cpu_load) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                        mes = device.name + ' CPU load equal to ' + str(cpu_load) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                         if cpu_load > device.cpu_load_critical:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
                             alert.save()
@@ -285,7 +285,7 @@ class Device(models.Model):
                 
                 if device.temperature != None:
                     if device.temperature != temperature and device.temperature < temperature:
-                        mes = device.name + 'Temperature equal to ' + str(temperature) + 'C at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                        mes = device.name + ' temperature equal to ' + str(temperature) + 'C at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
                         if temperature > device.temperature_critical:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
                             alert.save()
