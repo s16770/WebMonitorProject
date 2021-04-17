@@ -1,12 +1,12 @@
 ﻿{% extends "WebMonitor/base.html" %}
 
 {% block headcontent %}
-    
+    <meta http-equiv="refresh" content="10">
 {% endblock headcontent %}
 
 {% block content %}
 
-<div class="row row-cols-1 row-cols-md-5 g-4">
+<div class="row row-cols-1 row-cols-md-4 g-4">
     {% if devicename.storage_osOID != None %}
     <div class="col">
         {% if devicename.used_storage_percentage < devicename.used_storage_warning %}

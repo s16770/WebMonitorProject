@@ -88,8 +88,6 @@ class Device(models.Model):
     #oids
     status_osOID = models.CharField(max_length=100, null=True, blank=True)
     status_opOID = models.CharField(max_length=100, null=True, blank=True)
-    transfer_osOID = models.CharField(max_length=100, null=True, blank=True)
-    transfer_opOID = models.CharField(max_length=100, null=True, blank=True)
     temperature_osOID = models.CharField(max_length=100, null=True, blank=True)
     temperature_opOID = models.CharField(max_length=100, null=True, blank=True)
     cpu_osOID = models.CharField(max_length=100, null=True, blank=True)
