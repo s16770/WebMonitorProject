@@ -223,25 +223,21 @@ class Device(models.Model):
                 usedstorage_size = int(usedsize_val.stdout.decode())
                 GB = 1000000000
 
-                usp_tmp = float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB)*100
+                usp_tmp = (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB)*100
                 uss_tmp = usedstorage_size*storage_alloc_size/GB
                 if device.used_storage != None:
                     if Decimal(device.used_storage).quantize(Decimal('.01')) != Decimal(uss_tmp).quantize(Decimal('.01')):
                         mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(usp_tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
-                        if  float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
+                        if  (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
                             alert.save()
-                        elif float(usedstorage_size*storage_alloc_size/GB)/float(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
+                        elif (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
                             alert.save()
-                    print()
-                    print(Decimal(device.used_storage).quantize(Decimal('.01')))
-                    print()
-                    print(Decimal(uss_tmp).quantize(Decimal('.01')))
 
-                device.storage = float(storage_size*storage_alloc_size/GB)
-                device.used_storage = float(usedstorage_size*storage_alloc_size/GB)
-                device.free_storage = float(((storage_size*storage_alloc_size) - float(usedstorage_size*storage_alloc_size))/GB)
+                device.storage = storage_size*storage_alloc_size/GB
+                device.used_storage = usedstorage_size*storage_alloc_size/GB
+                device.free_storage = (((storage_size*storage_alloc_size) - (usedstorage_size*storage_alloc_size))/GB)
                 device.used_storage_percentage = device.used_storage/device.storage
                 device.save()
 
