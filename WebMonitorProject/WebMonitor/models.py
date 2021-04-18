@@ -219,7 +219,7 @@ class Device(models.Model):
                 storage_size = int(size_val.stdout.decode())
                 storage_alloc_size = int(size_alloc_val.stdout.decode())
                 usedstorage_size = int(usedsize_val.stdout.decode())
-                GB = 1000000000
+                GB = 1024*1024*1024
 
                 usp_tmp = (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB)*100
                 uss_tmp = usedstorage_size*storage_alloc_size/GB
