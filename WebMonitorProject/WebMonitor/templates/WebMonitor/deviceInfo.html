@@ -1,10 +1,12 @@
 ﻿{% extends "WebMonitor/base.html" %}
 
 {% block headcontent %}
-    <meta http-equiv="refresh" content="10">
+
 {% endblock headcontent %}
 
 {% block content %}
+
+<b>{{ devicename.name }} details</b>
 
 <div class="row row-cols-1 row-cols-md-4 g-4">
     {% if devicename.storage_osOID != None %}
