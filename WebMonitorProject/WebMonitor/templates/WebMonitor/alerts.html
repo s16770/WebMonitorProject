@@ -11,7 +11,7 @@
         {% if alert.type == "critical" %}
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ alert }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="location.href = '{% WebMonitor:delete_alert alert.id %}'"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick= alert.delete()></button>
             </div>
         {% else %}
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
