@@ -331,13 +331,14 @@ class Device(models.Model):
 
         result = int(result_d) + result_nat
 
-        mes = device.name + ' session count equal to ' + str(result) + ' at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
-        if result > device.session_count_critical:
-            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
-            alert.save()
-        elif result > device.session_count_warning:
-            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
-            alert.save()        
+        if device.session_count_warning != None and device.session_count_critical:
+            mes = device.name + ' session count equal to ' + str(result) + ' at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
+            if result > device.session_count_critical:
+                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
+                alert.save()
+            elif result > device.session_count_warning:
+                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
+                alert.save()        
 
         device.sessions = result
         device.save()
