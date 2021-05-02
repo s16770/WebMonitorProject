@@ -198,6 +198,13 @@ class Device(models.Model):
                 alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()))
                 alert.save()
 
+            if service.status != None:
+                    if service.status != fun(val.stdout.decode()[0]):
+                        mes = device.name + ' ' + service.name + ' status changed to ' + fun(val.stdout.decode()[0]) + ' at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
+                        if cpu_load > device.cpu_load_critical:
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
+                            alert.save()
+
             service.status = fun(val.stdout.decode()[0])
             service.save()
         except:

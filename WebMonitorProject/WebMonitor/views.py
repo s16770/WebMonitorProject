@@ -26,3 +26,7 @@ def alerts(request):
         'alerts': Alert.objects.all()
     }
     return render(request, 'WebMonitor/alerts.html', context)
+
+def alertDelete(request, object_id): 
+    object = get_object_or_404(Alert, pk=object_id) 
+    object.delete() 
