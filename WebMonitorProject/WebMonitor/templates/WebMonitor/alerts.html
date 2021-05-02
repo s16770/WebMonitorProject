@@ -6,14 +6,22 @@
 
 {% block content %}
 
-<ul class="list-group">
+{% if alerts %}    
     {% for alert in alerts %}
         {% if alert.type == "critical" %}
-            <li class="list-group-item list-group-item-danger">{{ alert }}</li>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ alert }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         {% else %}
-            <li class="list-group-item list-group-item-warning">{{ alert }}</li>
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{ alert }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         {% endif %}
     {% endfor %}
-</ul>
+{% else %}
+    <p><em>No alerts to display</em></p>
+{% endif %}
 
 {% endblock content %}

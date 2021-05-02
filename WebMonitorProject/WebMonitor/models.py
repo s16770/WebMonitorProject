@@ -169,8 +169,8 @@ class Device(models.Model):
                 }.get(x, 'Unknown')
 
             if device.status != fun(val.stdout.decode()[0]) and fun(val.stdout.decode()[0]) != 'Up':
-                mes = device.name + ' interface state changed to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
-                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()))
+                mes = device.name + ' interface state changed to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
+                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()))
                 alert.save()
 
             device.status = fun(val.stdout.decode()[0])
@@ -194,8 +194,8 @@ class Device(models.Model):
                 }.get(x, 'Unknown')
 
             if service.status != fun(val.stdout.decode()[0]) and fun(val.stdout.decode()[0]) != 'active':
-                mes = device.name + ' ' + service.name + ' changed state to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
-                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()))
+                mes = device.name + ' ' + service.name + ' changed state to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
+                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()))
                 alert.save()
 
             service.status = fun(val.stdout.decode()[0])
@@ -227,12 +227,12 @@ class Device(models.Model):
                 uss_tmp = usedstorage_size*storage_alloc_size/GB
                 if device.used_storage != None:
                     if Decimal(device.used_storage).quantize(Decimal('.01')) != Decimal(uss_tmp).quantize(Decimal('.01')):
-                        mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(usp_tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                        mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(usp_tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
                         if  (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
                             alert.save()
                         elif (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
                             alert.save()
 
                 device.storage = storage_size*storage_alloc_size/GB
@@ -374,6 +374,7 @@ class Session(models.Model):
     application = models.CharField(max_length=30)
     transfer = models.PositiveIntegerField()
     start_time = models.CharField(max_length=30, null=True)
+    alert_couse = models.CharField(max_length=50, null=True)
 
     def getSessionDetails(firewall, device, zone):
         

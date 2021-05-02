@@ -4,9 +4,15 @@
 
 {% endblock headcontent %}
 
+{% block navitem %}
+    <li class="nav-item">
+        <a class="nav-link" href="/alerts/">Edit device settings</a>
+    </li>
+{% endblock navitem %}
+
 {% block content %}
 
-<b>{{ devicename.name }} details</b>
+<h2>{{ devicename.name }}<span class="badge bg-secondary">{{ devicename.type }}</span></h2>
 
 <div class="row row-cols-1 row-cols-md-4 g-4">
     {% if devicename.storage_osOID != None %}
@@ -101,6 +107,7 @@
                                 <th scope="col">User</th>
                                 <th scope="col">Application</th>
                                 <th scope="col">Transfer (Kb)</th>
+                                <th scope="col">Possible alert couse</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -111,6 +118,7 @@
                                         <td>{{ session.user }}</td>
                                         <td>{{ session.application }}</td>
                                         <td>{{ session.transfer }}</td>
+                                        <td>{{ session.alert_couse }}</td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}
