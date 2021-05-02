@@ -84,6 +84,8 @@ class Device(models.Model):
     temperature = models.IntegerField(editable=False, null=True)
     temperature_warning = models.IntegerField(null=True, blank=True)
     temperature_critical = models.IntegerField(null=True, blank=True)
+    session_count_warning = models.IntegerField(null=True, blank=True)
+    session_count_critical = models.IntegerField(null=True, blank=True)
 
     #oids
     status_osOID = models.CharField(max_length=100, null=True, blank=True)
@@ -259,12 +261,12 @@ class Device(models.Model):
                 
                 if device.cpu_load != None:
                     if device.cpu_load != cpu_load and device.cpu_load < cpu_load:
-                        mes = device.name + ' CPU load equal to ' + str(cpu_load) + '% at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                        mes = device.name + ' CPU load equal to ' + str(cpu_load) + '% at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
                         if cpu_load > device.cpu_load_critical:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
                             alert.save()
                         elif cpu_load > device.cpu_load_warning:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
                             alert.save()
 
                 device.cpu_load = cpu_load
@@ -285,12 +287,12 @@ class Device(models.Model):
                 
                 if device.temperature != None:
                     if device.temperature != temperature and device.temperature < temperature:
-                        mes = device.name + ' temperature equal to ' + str(temperature) + 'C at ' +  pytz.utc.localize(datetime.datetime.utcnow()).strftime("%m/%d/%Y, %H:%M:%S")
+                        mes = device.name + ' temperature equal to ' + str(temperature) + 'C at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
                         if temperature > device.temperature_critical:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="critical")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
                             alert.save()
                         elif temperature > device.temperature_warning:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.utcnow()), type="warning")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
                             alert.save()        
 
                 device.temperature = temperature
@@ -306,16 +308,36 @@ class Device(models.Model):
                        'type': 'op', 
                        'cmd': '<show><session><all><filter><destination>' + device.ipaddress + '</destination><count>yes</count></filter></all></session></show>'
                        }
+        payload_nat = {'key': api_key, 
+                    'type': 'op', 
+                    'cmd': '<show><session><all><filter><nat>both</nat></filter></all></session></show>'
+                     }
 
         rd = requests.get(url='https://' + firewall.domain_name + '/api/', params=payload_dest, verify=False)
+        rnat = requests.get(url='https://' + firewall.domain_name +'/api/', params=payload_nat, verify=False)
 
         response_d = rd.text
-            
+        response_nat = rnat.text
+        soup_nat = BS(response_nat, features='lxml')
         parsed_response_d = BS(response_d, features="html.parser")
 
         result_d = parsed_response_d.find('result').find('member').text
+        nat_entries = soup_nat.find_all('entry')
+        result_nat = 0;
 
-        result = int(result_d)
+        for e in nat_entries:
+            if e.xdst.get_text() == device.ipaddress:
+                result_nat = result_nat + 1
+
+        result = int(result_d) + result_nat
+
+        mes = device.name + ' session count equal to ' + str(result) + ' at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
+        if result > device.session_count_critical:
+            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
+            alert.save()
+        elif result > device.session_count_warning:
+            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
+            alert.save()        
 
         device.sessions = result
         device.save()
