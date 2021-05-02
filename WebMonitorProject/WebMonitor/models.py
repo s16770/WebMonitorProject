@@ -155,7 +155,17 @@ class Device(models.Model):
                 t6.join()
 
             time.sleep(15)
-   
+    
+    def alertCorrelation(alert, alert_type):
+
+        sessions = Session.objects.filter(device=alert.device)
+        for session in sessions:
+            if session.start_time > alert.timestamp - datetime.timedelta(minutes=15) and session.start_time < alert.timestamp:
+                if session.alert_couse == '':
+                    session.alert_cause = alert_type
+                else:
+                    session.alert_couse = session.alert_couse + ', ' + alert_type
+
     def checkConnection(device):
         
         try:
@@ -197,6 +207,7 @@ class Device(models.Model):
                 mes = device.name + ' ' + service.name + ' changed state to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
                 alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()))
                 alert.save()
+                alertCorrelation(alert, 'Service')
 
             if service.status != None:
                     if service.status != fun(val.stdout.decode()[0]):
@@ -204,6 +215,7 @@ class Device(models.Model):
                         if cpu_load > device.cpu_load_critical:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
                             alert.save()
+                            alertCorrelation(alert, 'Service')
 
             service.status = fun(val.stdout.decode()[0])
             service.save()
@@ -238,9 +250,11 @@ class Device(models.Model):
                         if  (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
                             alert.save()
+                            alertCorrelation(alert, 'Storage')
                         elif (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
                             alert.save()
+                            alertCorrelation(alert, 'Storage')
 
                 device.storage = storage_size*storage_alloc_size/GB
                 device.used_storage = usedstorage_size*storage_alloc_size/GB
@@ -272,9 +286,11 @@ class Device(models.Model):
                         if cpu_load > device.cpu_load_critical:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
                             alert.save()
+                            alertCorrelation(alert, 'CPU')
                         elif cpu_load > device.cpu_load_warning:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
                             alert.save()
+                            alertCorrelation(alert, 'CPU')
 
                 device.cpu_load = cpu_load
                 device.save()
@@ -298,9 +314,11 @@ class Device(models.Model):
                         if temperature > device.temperature_critical:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
                             alert.save()
+                            alertCorrelation(alert, 'Temperature')
                         elif temperature > device.temperature_warning:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
-                            alert.save()        
+                            alert.save()
+                            alertCorrelation(alert, 'Temperature')
 
                 device.temperature = temperature
                 device.save()
@@ -345,7 +363,7 @@ class Device(models.Model):
                 alert.save()
             elif result > device.session_count_warning:
                 alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
-                alert.save()        
+                alert.save()
 
         device.sessions = result
         device.save()
@@ -380,8 +398,8 @@ class Session(models.Model):
     user = models.CharField(max_length=50, null=True)
     application = models.CharField(max_length=30)
     transfer = models.PositiveIntegerField()
-    start_time = models.CharField(max_length=30, null=True)
-    alert_couse = models.CharField(max_length=50, null=True)
+    start_time = models.DateTimeField(default=datetime.datetime.now())
+    alert_couse = models.CharField(max_length=50, null=True, default='')
 
     def getSessionDetails(firewall, device, zone):
         
@@ -430,7 +448,8 @@ class Session(models.Model):
                 if s.source.get_text() == u.ip.get_text():
                     username = u.user.get_text()
 
-            #ogarnac format daty w ponizszym
-            session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/10, start_time=s.find('start-time').get_text())
+            session_datetime_tmp = datetime.datetime.strptime(s.find('start-time').get_text(), "%a %B  %d %H:%M:%S %Y") 
+            session_datetime = pytz.utc.localize(session_datetime_tmp)
+            session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/10, start_time=session_datetime)
             session.save()
 
