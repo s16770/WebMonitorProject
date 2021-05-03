@@ -434,7 +434,9 @@ class Session(models.Model):
         for s in session_details:
             storage_tmp_val = storage_tmp_val + int(s.find('total-byte-count').get_text())
 
-        storage_avg = storage_tmp_val/len(session_details)
+        storage_avg = 1000
+        if len(session_details) != 0:
+            storage_avg = storage_tmp_val/len(session_details)
 
         for s in session_details:
             username = ""
