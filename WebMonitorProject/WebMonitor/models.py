@@ -436,13 +436,13 @@ class Session(models.Model):
                 if s.source.get_text() == u.ip.get_text():
                     username = u.user.get_text()
             
+            session_datetime_tmp = datetime.datetime.strptime(s.find('start-time').get_text(), "%a %B  %d %H:%M:%S %Y") 
+            starttime = pytz.utc.localize(session_datetime_tmp)
             couse = ''
             for alert in alerts:
                 if starttime < alert.timestamp: # and starttime > alert.timestamp - datetime.timedelta(minutes=15)
                     couse = couse + ' ' + alert.category
 
-            session_datetime_tmp = datetime.datetime.strptime(s.find('start-time').get_text(), "%a %B  %d %H:%M:%S %Y") 
-            starttime = pytz.utc.localize(session_datetime_tmp)
             session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/10, start_time=starttime, alert_couse=couse)
             session.save()
 
