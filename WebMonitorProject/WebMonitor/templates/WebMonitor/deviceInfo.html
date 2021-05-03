@@ -112,7 +112,7 @@
                         </thead>
                         <tbody>
                             {% for session in sessions %}
-                                {% if session.device == devicename and session.source_zone == zone %}
+                                {% if session.source_zone == zone %}
                                     <tr>
                                         <th scope="row">{{ session.source_ip }}</th>
                                         <td>{{ session.user }}</td>

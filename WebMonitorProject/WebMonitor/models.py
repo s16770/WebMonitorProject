@@ -342,7 +342,7 @@ class Device(models.Model):
 
         result = int(result_d) + result_nat
 
-        if device.session_count_warning != None and device.session_count_critical:
+        if device.session_count_warning != None and device.session_count_critical != None:
             mes = device.name + ' session count equal to ' + str(result) + ' at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
             if result > device.session_count_critical:
                 alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Session count')
@@ -428,25 +428,21 @@ class Session(models.Model):
        
         
         session_details = result + result_nat
+        alerts = Alert.objects.filter(device=device)
 
         for s in session_details:
             username = ""
             for u in user_entries:
                 if s.source.get_text() == u.ip.get_text():
                     username = u.user.get_text()
+            
+            couse = ''
+            for alert in alerts:
+                if starttime < alert.timestamp: # and starttime > alert.timestamp - datetime.timedelta(minutes=15)
+                    couse = couse + ' ' + alert.category
 
             session_datetime_tmp = datetime.datetime.strptime(s.find('start-time').get_text(), "%a %B  %d %H:%M:%S %Y") 
-            session_datetime = pytz.utc.localize(session_datetime_tmp)
-            session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/10, start_time=session_datetime)
-            
-            alerts = Alert.objects.filter(device=device)
-            for alert in alerts:
-                if session.start_time > alert.timestamp - datetime.timedelta(minutes=15) and session.start_time < alert.timestamp:
-                    if session.alert_couse == '':
-                        session.alert_cause = alert.category
-                    else:
-                        session.alert_couse = session.alert_couse + ', ' + alert.category
-            
-            
+            starttime = pytz.utc.localize(session_datetime_tmp)
+            session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/10, start_time=starttime, alert_couse=couse)
             session.save()
 

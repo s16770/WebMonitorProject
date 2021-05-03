@@ -16,7 +16,7 @@ def deviceInfo(request, devicename):
     context = {
         'devicename': Device.objects.get(name=devicename),
         'zones': Zone.objects.all(),
-        'sessions': Session.objects.all(),
+        'sessions': Session.objects.filter(device=Device.objects.get(name=devicename)),
         'services': Service.objects.filter(device=Device.objects.get(name=devicename))
     }
     return render(request, 'WebMonitor/deviceInfo.html', context)
