@@ -451,7 +451,7 @@ class Session(models.Model):
                     couse = alert.category
                 if alert.category != 'Storage' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
                     couse = couse + ' ' + alert.category
-                    
-            session = Session(device=device, source_zone=s_zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/1024, start_time=starttime, alert_couse=couse)
-            session.save()
+            if int(s.find('total-byte-count').get_text())/1024 > 0:      
+                session = Session(device=device, source_zone=s_zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/1024, start_time=starttime, alert_couse=couse)
+                session.save()
 
