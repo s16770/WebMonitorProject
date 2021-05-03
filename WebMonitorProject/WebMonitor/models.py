@@ -445,12 +445,13 @@ class Session(models.Model):
             session_datetime_tmp = datetime.datetime.strptime(s.find('start-time').get_text(), "%a %B  %d %H:%M:%S %Y") 
             starttime = pytz.utc.localize(session_datetime_tmp)
             couse = ''
+            s_zone = Zone.objects.get(name=s.find('from').get_text())
             for alert in alerts:
                 if alert.category == 'Storage' and int(s.find('total-byte-count').get_text()) > storage_avg and starttime < alert.timestamp:
                     couse = alert.category
                 if alert.category != 'Storage' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
                     couse = couse + ' ' + alert.category
                     
-            session = Session(device=device, source_zone=s.find('from').get_text(), source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/1024, start_time=starttime, alert_couse=couse)
+            session = Session(device=device, source_zone=s_zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/1024, start_time=starttime, alert_couse=couse)
             session.save()
 
