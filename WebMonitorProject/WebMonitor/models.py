@@ -430,6 +430,12 @@ class Session(models.Model):
         session_details = result + result_nat
         alerts = Alert.objects.filter(device=device)
 
+        storage_tmp_val = 0
+        for s in session_details:
+            storage_tmp_val = storage_tmp_val + int(s.find('total-byte-count').get_text())
+
+        storage_avg = storage_tmp_val/len(session_details)
+
         for s in session_details:
             username = ""
             for u in user_entries:
@@ -440,8 +446,12 @@ class Session(models.Model):
             starttime = pytz.utc.localize(session_datetime_tmp)
             couse = ''
             for alert in alerts:
-                if starttime < alert.timestamp: # and starttime > alert.timestamp - datetime.timedelta(minutes=15)
+                if alert.category == 'Storage' and int(s.find('total-byte-count').get_text()) > storage_avg and starttime < alert.timestamp:
+                    couse = alert.category
+                if starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
                     couse = couse + ' ' + alert.category
+                    
+
 
             session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/10, start_time=starttime, alert_couse=couse)
             session.save()
