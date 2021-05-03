@@ -76,6 +76,7 @@ class Device(models.Model):
     used_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     used_storage_warning = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
     used_storage_critical = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
+    used_storage_percentage = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
     free_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     cpu_load = models.PositiveIntegerField(editable=False, null=True)
     cpu_load_warning = models.PositiveIntegerField(null=True, blank=True)
@@ -238,16 +239,17 @@ class Device(models.Model):
                 if device.used_storage != None:
                     if Decimal(device.used_storage).quantize(Decimal('.01')) != Decimal(uss_tmp).quantize(Decimal('.01')):
                         mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(usp_tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
-                        if  (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
+                        if  usedstorage_size/storage_size > device.used_storage_critical:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Storage')
                             alert.save()
-                        elif (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
+                        elif usedstorage_size/storage_size > device.used_storage_warning:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='Storage')
                             alert.save()
 
                 device.storage = storage_size*storage_alloc_size/GB
                 device.used_storage = usedstorage_size*storage_alloc_size/GB
                 device.free_storage = (((storage_size*storage_alloc_size) - (usedstorage_size*storage_alloc_size))/GB)
+                device.used_storage_percentage = device.used_storage/device.storage
                 device.save()
 
             except:
@@ -383,7 +385,7 @@ class Session(models.Model):
     user = models.CharField(max_length=50, null=True)
     application = models.CharField(max_length=30)
     transfer = models.PositiveIntegerField()
-    start_time = models.DateTimeField(default=datetime.datetime.now())
+    start_time = models.DateTimeField(null=True, default=None)
     alert_couse = models.CharField(max_length=50, null=True, default='')
 
     def getSessionDetails(firewall, device, zone):
@@ -451,7 +453,7 @@ class Session(models.Model):
                     couse = alert.category
                 if alert.category != 'Storage' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
                     couse = couse + ' ' + alert.category
-            if int(s.find('total-byte-count').get_text())/1024 > 0:      
-                session = Session(device=device, source_zone=s_zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/1024, start_time=starttime, alert_couse=couse)
-                session.save()
+        
+            session = Session(device=device, source_zone=s_zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/1024, start_time=starttime, alert_couse=couse)
+            session.save()
 
