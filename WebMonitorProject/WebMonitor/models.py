@@ -156,15 +156,15 @@ class Device(models.Model):
 
             time.sleep(15)
     
-    def alertCorrelation(alert, alert_type):
+    #def alertCorrelation(alert, alert_type):
 
-        sessions = Session.objects.filter(device=alert.device)
-        for session in sessions:
-            if session.start_time > alert.timestamp - datetime.timedelta(minutes=15) and session.start_time < alert.timestamp:
-                if session.alert_couse == '':
-                    session.alert_cause = alert_type
-                else:
-                    session.alert_couse = session.alert_couse + ', ' + alert_type
+    #    sessions = Session.objects.filter(device=alert.device)
+    #    for session in sessions:
+    #        if session.start_time > alert.timestamp - datetime.timedelta(minutes=15) and session.start_time < alert.timestamp:
+    #            if session.alert_couse == '':
+    #                session.alert_cause = alert_type
+    #            else:
+    #                session.alert_couse = session.alert_couse + ', ' + alert_type
 
     def checkConnection(device):
         
@@ -180,7 +180,7 @@ class Device(models.Model):
 
             if device.status != fun(val.stdout.decode()[0]) and fun(val.stdout.decode()[0]) != 'Up':
                 mes = device.name + ' interface state changed to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
-                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()))
+                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), category='Connection')
                 alert.save()
 
             device.status = fun(val.stdout.decode()[0])
@@ -203,19 +203,11 @@ class Device(models.Model):
                     '4': 'paused'
                 }.get(x, 'Unknown')
 
-            if service.status != fun(val.stdout.decode()[0]) and fun(val.stdout.decode()[0]) != 'active':
-                mes = device.name + ' ' + service.name + ' changed state to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
-                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()))
-                alert.save()
-                alertCorrelation(alert, 'Service')
-
             if service.status != None:
-                    if service.status != fun(val.stdout.decode()[0]):
+                    if service.status != fun(val.stdout.decode()[0]) and fun(val.stdout.decode()[0]) != 'active':
                         mes = device.name + ' ' + service.name + ' status changed to ' + fun(val.stdout.decode()[0]) + ' at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
-                        if cpu_load > device.cpu_load_critical:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
-                            alert.save()
-                            alertCorrelation(alert, 'Service')
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Service')
+                        alert.save()
 
             service.status = fun(val.stdout.decode()[0])
             service.save()
@@ -248,13 +240,11 @@ class Device(models.Model):
                     if Decimal(device.used_storage).quantize(Decimal('.01')) != Decimal(uss_tmp).quantize(Decimal('.01')):
                         mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(usp_tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
                         if  (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB) > device.used_storage_critical:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Storage')
                             alert.save()
-                            alertCorrelation(alert, 'Storage')
                         elif (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB) > device.used_storage_warning:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='Storage')
                             alert.save()
-                            alertCorrelation(alert, 'Storage')
 
                 device.storage = storage_size*storage_alloc_size/GB
                 device.used_storage = usedstorage_size*storage_alloc_size/GB
@@ -284,13 +274,11 @@ class Device(models.Model):
                     if device.cpu_load != cpu_load and device.cpu_load < cpu_load:
                         mes = device.name + ' CPU load equal to ' + str(cpu_load) + '% at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
                         if cpu_load > device.cpu_load_critical:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='CPU')
                             alert.save()
-                            alertCorrelation(alert, 'CPU')
                         elif cpu_load > device.cpu_load_warning:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='CPU')
                             alert.save()
-                            alertCorrelation(alert, 'CPU')
 
                 device.cpu_load = cpu_load
                 device.save()
@@ -312,13 +300,11 @@ class Device(models.Model):
                     if device.temperature != temperature and device.temperature < temperature:
                         mes = device.name + ' temperature equal to ' + str(temperature) + 'C at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
                         if temperature > device.temperature_critical:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Temperature')
                             alert.save()
-                            alertCorrelation(alert, 'Temperature')
                         elif temperature > device.temperature_warning:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
+                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='Temperature')
                             alert.save()
-                            alertCorrelation(alert, 'Temperature')
 
                 device.temperature = temperature
                 device.save()
@@ -359,10 +345,10 @@ class Device(models.Model):
         if device.session_count_warning != None and device.session_count_critical:
             mes = device.name + ' session count equal to ' + str(result) + ' at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
             if result > device.session_count_critical:
-                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical")
+                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Session count')
                 alert.save()
             elif result > device.session_count_warning:
-                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning")
+                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='Session count')
                 alert.save()
 
         device.sessions = result
@@ -375,6 +361,7 @@ class Alert(models.Model):
     message = models.CharField(max_length=180)
     timestamp = models.DateTimeField()
     type = models.CharField(max_length=50, default='warning')
+    category = models.CharField(max_length=50, default='')
 
     def __str__(self):
         return self.message
@@ -451,5 +438,15 @@ class Session(models.Model):
             session_datetime_tmp = datetime.datetime.strptime(s.find('start-time').get_text(), "%a %B  %d %H:%M:%S %Y") 
             session_datetime = pytz.utc.localize(session_datetime_tmp)
             session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/10, start_time=session_datetime)
+            
+            alerts = Alert.objects.filter(device=device)
+            for alert in alerts:
+                if session.start_time > alert.timestamp - datetime.timedelta(minutes=15) and session.start_time < alert.timestamp:
+                    if session.alert_couse == '':
+                        session.alert_cause = alert.category
+                    else:
+                        session.alert_couse = session.alert_couse + ', ' + alert.category
+            
+            
             session.save()
 
