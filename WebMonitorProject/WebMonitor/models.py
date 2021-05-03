@@ -76,7 +76,6 @@ class Device(models.Model):
     used_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     used_storage_warning = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
     used_storage_critical = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
-    used_storage_percentage = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
     free_storage = models.DecimalField(editable=False, null=True, decimal_places=2, max_digits=10)
     cpu_load = models.PositiveIntegerField(editable=False, null=True)
     cpu_load_warning = models.PositiveIntegerField(null=True, blank=True)
@@ -249,7 +248,6 @@ class Device(models.Model):
                 device.storage = storage_size*storage_alloc_size/GB
                 device.used_storage = usedstorage_size*storage_alloc_size/GB
                 device.free_storage = (((storage_size*storage_alloc_size) - (usedstorage_size*storage_alloc_size))/GB)
-                device.used_storage_percentage = device.used_storage/device.storage
                 device.save()
 
             except:
@@ -434,7 +432,7 @@ class Session(models.Model):
         for s in session_details:
             storage_tmp_val = storage_tmp_val + int(s.find('total-byte-count').get_text())
 
-        storage_avg = 1000
+        storage_avg = 1000000
         if len(session_details) != 0:
             storage_avg = storage_tmp_val/len(session_details)
 
@@ -450,11 +448,9 @@ class Session(models.Model):
             for alert in alerts:
                 if alert.category == 'Storage' and int(s.find('total-byte-count').get_text()) > storage_avg and starttime < alert.timestamp:
                     couse = alert.category
-                if starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
+                if alert.category != 'Storage' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
                     couse = couse + ' ' + alert.category
                     
-
-
-            session = Session(device=device, source_zone=zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/10, start_time=starttime, alert_couse=couse)
+            session = Session(device=device, source_zone=s.find('from').get_text(), source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/1024, start_time=starttime, alert_couse=couse)
             session.save()
 
