@@ -22,14 +22,13 @@ def deviceInfo(request, devicename):
     }
     return render(request, 'WebMonitor/deviceInfo.html', context)
 
-def alerts(request):
+def alerts(request, alert_id):
+
+    if(alert_id!=None):
+        object = Alert.objects.get(id=alert_id) 
+        object.delete() 
+
     context = {
         'alerts': Alert.objects.all()
     }
     return render(request, 'WebMonitor/alerts.html', context)
-
-def alertDelete(request, alert_id): 
-    object = Alert.objects.get(id=alert_id) 
-    object.delete() 
-    
-    return HttpResponseRedirect(request.GET.get('/alerts/'))

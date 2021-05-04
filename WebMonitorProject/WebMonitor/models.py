@@ -449,10 +449,11 @@ class Session(models.Model):
             couse = ''
             s_zone = Zone.objects.get(name=s.find('from').get_text())
             for alert in alerts:
-                if alert.category == 'Storage' and int(s.find('total-byte-count').get_text()) > storage_avg and starttime < alert.timestamp:
-                    couse = alert.category
-                if alert.category != 'Storage' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
-                    couse = couse + ' ' + alert.category
+                if couse != alert.category and couse != ' ' + alert.category:
+                    if alert.category == 'Storage' and int(s.find('total-byte-count').get_text()) > storage_avg and starttime < alert.timestamp:
+                        couse = alert.category
+                    if alert.category != 'Storage' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
+                        couse = couse + ' ' + alert.category
         
             session = Session(device=device, source_zone=s_zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/1024, start_time=starttime, alert_couse=couse)
             session.save()
