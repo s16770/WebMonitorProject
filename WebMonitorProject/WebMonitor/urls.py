@@ -11,7 +11,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.dashboard, name='webmonitorhome'),
     path('device/<devicename>', views.deviceInfo, name='wmdeviceinfo'),
-    path('alerts/', views.alerts, name='wmalerts'),
+    path('alerts/', views.alerts, name='wmalerts')
     #path('alerts/<alert_id>', views.alertDelete, name='delete_alert') 
 ]
 
