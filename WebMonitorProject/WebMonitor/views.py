@@ -30,7 +30,5 @@ def alerts(request):
 def alertDelete(request, alert_id): 
     object = Alert.objects.get(id=alert_id) 
     object.delete() 
-    context = {
-        'alerts': Alert.objects.all()
-    }
-    return render(request, 'WebMonitor/alerts.html', context)
+    
+    return HttpResponseRedirect(request.GET.get('/alerts/'))
