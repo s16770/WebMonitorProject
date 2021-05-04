@@ -1,5 +1,5 @@
 from django.urls import path
-from django.urls import url
+from django.urls import re_path
 from django.contrib import admin
 from . import views
 from .models import Device
@@ -13,7 +13,7 @@ urlpatterns = [
     path('', views.dashboard, name='webmonitorhome'),
     path('device/<devicename>', views.deviceInfo, name='wmdeviceinfo'),
     path('alerts/', views.alerts, name='wmalerts'),
-    url(r'^(?P<object_id>[0-9]+)/delete/$', views.alertDelete, name='delete_alert') 
+    re_path(r'^(?P<object_id>[0-9]+)/delete/$', views.alertDelete, name='delete_alert') 
 ]
 
 t1 = threading.Thread(target=Device.poll)
