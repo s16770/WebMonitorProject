@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from django.http import HttpResponseRedirect
 from .models import Device
 from .models import Zone
 from .models import Session
@@ -27,6 +26,13 @@ def alerts(request, alert_id):
     if(alert_id!=None):
         object = Alert.objects.get(id=alert_id) 
         object.delete() 
+
+    context = {
+        'alerts': Alert.objects.all()
+    }
+    return render(request, 'WebMonitor/alerts.html', context)
+
+def alerts(request):
 
     context = {
         'alerts': Alert.objects.all()
