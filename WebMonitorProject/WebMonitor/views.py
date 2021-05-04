@@ -31,5 +31,5 @@ def alerts(request):
         return redirect('/alerts/')
 
 def alertDelete(request, object_id): 
-    object = get_object_or_404(Alert, pk=object_id) 
+    object = get_object_or_404(Alert, id=object_id) 
     object.delete() 
