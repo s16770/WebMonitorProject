@@ -21,7 +21,7 @@ def deviceInfo(request, devicename):
     }
     return render(request, 'WebMonitor/deviceInfo.html', context)
 
-def alerts(request, alert_id):
+def alertDelete(request, alert_id):
 
     if(alert_id!=None):
         object = Alert.objects.get(id=alert_id) 
