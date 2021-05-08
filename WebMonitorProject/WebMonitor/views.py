@@ -22,16 +22,6 @@ def deviceInfo(request, devicename):
     }
     return render(request, 'WebMonitor/deviceInfo.html', context)
 
-#def alertDelete(request, alert_id):
-
-#    obj = get_object_or_404(Alert, id=alert_id)
-#    #obj.delete()
-#    #return redirect('../')
-
-#    context = {
-#        'object': obj
-#    }
-#    return render(request, 'WebMonitor/alertdel.html', context)
 
 class PostDeleteView(DeleteView):
     model = Alert

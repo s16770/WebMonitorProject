@@ -13,7 +13,7 @@ urlpatterns = [
     path('', views.dashboard, name='webmonitorhome'),
     path('device/<devicename>/', views.deviceInfo, name='wmdeviceinfo'),
     path('alerts/', views.alerts, name='wmalerts'),
-    path('alerts/<int:pk>/delete', PostDeleteView.as_view(), name='delete_alert') 
+    path('alerts/<int:pk>/delete/', PostDeleteView.as_view(), name='delete_alert') 
 ]
 
 t1 = threading.Thread(target=Device.poll)
