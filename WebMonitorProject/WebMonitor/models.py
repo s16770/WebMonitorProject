@@ -340,6 +340,7 @@ class Device(models.Model):
             if e.xdst.get_text() == device.ipaddress:
                 result_nat = result_nat + 1
 
+        
         result = int(result_d) + result_nat
 
         if device.session_count_warning != None and device.session_count_critical != None:
