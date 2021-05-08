@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render
 from django.views.generic import DeleteView
 from django.http import HttpResponse
 from .models import Device
