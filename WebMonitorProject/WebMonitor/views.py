@@ -34,7 +34,7 @@ def deviceInfo(request, devicename):
 #    return render(request, 'WebMonitor/alertdel.html', context)
 
 class PostDeleteView(DeleteView):
-    model = Post
+    model = Alert
     success_url = '/alerts/'
 
 def alerts(request):
