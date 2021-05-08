@@ -1,0 +1,12 @@
+﻿{% extends "WebMonitor/base.html" %}
+
+{% block content %}
+
+<form method='POST'>
+    {% csrf_token %}
+    <h2>Are you sure you want to delete this alert?</h2>
+    <button class="btn btn-outline-danger" type="submit" >Yes, Delete</button>
+    <a class="btn btn-outline-secondary" href="{% url 'wmalerts' %}">No</a>
+</form>
+
+{% endblock content %}

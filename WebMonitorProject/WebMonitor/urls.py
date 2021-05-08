@@ -5,6 +5,7 @@ from .models import Device
 from .models import Zone
 from .models import Firewall
 import threading
+from .views import PostDeleteView
 
 
 urlpatterns = [
@@ -12,7 +13,7 @@ urlpatterns = [
     path('', views.dashboard, name='webmonitorhome'),
     path('device/<devicename>', views.deviceInfo, name='wmdeviceinfo'),
     path('alerts/', views.alerts, name='wmalerts'),
-    path('alerts/<int:id>', views.alertDelete, name='delete_alert') 
+    path('alerts/<int:id>', PostDeleteView.as_view(), name='delete_alert') 
 ]
 
 t1 = threading.Thread(target=Device.poll)

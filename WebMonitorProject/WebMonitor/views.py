@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views.generic import DeleteView
 from django.http import HttpResponse
 from .models import Device
 from .models import Zone
@@ -21,16 +22,20 @@ def deviceInfo(request, devicename):
     }
     return render(request, 'WebMonitor/deviceInfo.html', context)
 
-def alertDelete(request, alert_id):
+#def alertDelete(request, alert_id):
 
-    obj = get_object_or_404(Alert, id=alert_id)
-    obj.delete()
-    return redirect('../')
+#    obj = get_object_or_404(Alert, id=alert_id)
+#    #obj.delete()
+#    #return redirect('../')
 
-    #context = {
-    #    'object': obj
-    #}
-    #return render(request, 'WebMonitor/alerts.html', context)
+#    context = {
+#        'object': obj
+#    }
+#    return render(request, 'WebMonitor/alertdel.html', context)
+
+class PostDeleteView(DeleteView):
+    model = Post
+    success_url = '/alerts/'
 
 def alerts(request):
 

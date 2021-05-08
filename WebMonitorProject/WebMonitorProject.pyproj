@@ -73,6 +73,7 @@
     <Content Include="WebMonitor\templates\WebMonitor\base.html" />
     <Content Include="WebMonitor\templates\WebMonitor\dashboard.html" />
     <Content Include="WebMonitor\templates\WebMonitor\deviceInfo.html" />
+    <Content Include="WebMonitor\templates\WebMonitor\alertdel.html" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Users\" />
