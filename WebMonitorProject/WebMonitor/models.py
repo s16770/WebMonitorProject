@@ -388,6 +388,9 @@ class Session(models.Model):
     start_time = models.DateTimeField(null=True, default=None)
     alert_couse = models.CharField(max_length=50, null=True, default='')
 
+    remote_access = {'ssh', 'ssl', 'rsh', 'ms-rdp', 'telnet', 'anydesk', 'windows-remote-management'}
+    light = {'dns', 'ping', 'msrpc-base', 'ms-wmi'}
+
     def getSessionDetails(firewall, device, zone):
         
         payload = {'key': api_key, 
@@ -451,10 +454,23 @@ class Session(models.Model):
             for alert in alerts:
                 if couse != alert.category and couse != ' ' + alert.category:
                     if alert.category == 'Storage' and int(s.find('total-byte-count').get_text()) > storage_avg and starttime < alert.timestamp:
-                        couse = alert.category
-                    if alert.category != 'Storage' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
+                        for app in light:
+                            if(app == s.application.get_text()):
+                                break
+                            couse = couse + ' ' + alert.category
+                    elif alert.category == 'CPU' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
+                        for app in light:
+                            if(app == s.application.get_text()):
+                                break
+                            couse = couse + ' ' + alert.category
+                    elif alert.category == 'Session count' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=5):
                         couse = couse + ' ' + alert.category
+                    elif alert.category == 'Connection' or alert.category == 'Service' and starttime < alert.timestamp:
+                        for app in remote_access:
+                            if(app == s.application.get_text()):
+                                couse = couse + ' ' + alert.category
+                                break
         
-            session = Session(device=device, source_zone=s_zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text())/1024, start_time=starttime, alert_couse=couse)
+            session = Session(device=device, source_zone=s_zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text()), start_time=starttime, alert_couse=couse)
             session.save()
 
