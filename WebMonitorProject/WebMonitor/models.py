@@ -102,13 +102,6 @@ class Device(models.Model):
     usedstorage_osOID = models.CharField(max_length=100, null=True, blank=True)
     usedstorage_opOID = models.CharField(max_length=100, null=True, blank=True)
 
-    #storage_his = np.full([480], None)
-    #temperature_his = np.full([480], None)
-    #cpu_his = np.full([480], None)
-    #s_counter = 0
-    #t_counter = 0
-    #c_counter = 0
-
     def __str__(self):
         return self.name
 
@@ -156,16 +149,6 @@ class Device(models.Model):
                 t6.join()
 
             time.sleep(15)
-    
-    #def alertCorrelation(alert, alert_type):
-
-    #    sessions = Session.objects.filter(device=alert.device)
-    #    for session in sessions:
-    #        if session.start_time > alert.timestamp - datetime.timedelta(minutes=15) and session.start_time < alert.timestamp:
-    #            if session.alert_couse == '':
-    #                session.alert_cause = alert_type
-    #            else:
-    #                session.alert_couse = session.alert_couse + ', ' + alert_type
 
     def checkConnection(device):
         
