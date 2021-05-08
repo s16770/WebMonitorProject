@@ -12,6 +12,8 @@ import requests
 import threading
 
 api_key = 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA=='
+remote_access = {'ssh', 'ssl', 'rsh', 'ms-rdp', 'telnet', 'anydesk', 'windows-remote-management'}
+light = {'dns', 'ping', 'msrpc-base', 'ms-wmi'}
 
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
@@ -388,9 +390,6 @@ class Session(models.Model):
     transfer = models.PositiveIntegerField()
     start_time = models.DateTimeField(null=True, default=None)
     alert_couse = models.CharField(max_length=50, null=True, default='')
-
-    remote_access = {'ssh', 'ssl', 'rsh', 'ms-rdp', 'telnet', 'anydesk', 'windows-remote-management'}
-    light = {'dns', 'ping', 'msrpc-base', 'ms-wmi'}
 
     def getSessionDetails(firewall, device, zone):
         
