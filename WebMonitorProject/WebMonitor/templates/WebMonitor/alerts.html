@@ -16,7 +16,7 @@
         {% else %}
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
                 {{ alert }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close" onclick="location.href = '/alerts/{{alert.id}}/delete'"></button>
             </div>
         {% endif %}
     {% endfor %}
