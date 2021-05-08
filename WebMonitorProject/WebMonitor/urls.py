@@ -11,9 +11,9 @@ from .views import PostDeleteView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.dashboard, name='webmonitorhome'),
-    path('device/<devicename>', views.deviceInfo, name='wmdeviceinfo'),
+    path('device/<devicename>/', views.deviceInfo, name='wmdeviceinfo'),
     path('alerts/', views.alerts, name='wmalerts'),
-    path('alerts/<int:id>', PostDeleteView.as_view(), name='delete_alert') 
+    path('alerts/<int:pk>/', PostDeleteView.as_view(), name='delete_alert') 
 ]
 
 t1 = threading.Thread(target=Device.poll)
