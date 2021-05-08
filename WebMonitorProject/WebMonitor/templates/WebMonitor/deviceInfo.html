@@ -24,9 +24,8 @@
         {% else %}
         <div class="card h-100 text-dark bg-warning mb-3">
         {% endif %}
-            <img src="" class="card-img-top" alt="graph">
             <div class="card-body">
-                <h5 class="card-title">Storage:</h5>
+                <h4 class="card-title">Storage:</h4>
                 <p class="card-text">
                     Capacity: {{ devicename.storage }} GB <br />
                     Used: {{ devicename.used_storage }} GB <br />
@@ -45,9 +44,8 @@
         {% else %}
         <div class="card h-100 text-dark bg-warning mb-3">
         {% endif %}
-            <img src="" class="card-img-top" alt="graph">
             <div class="card-body">
-                <h5 class="card-title">CPU load:</h5>
+                <h4 class="card-title">CPU load:</h4>
                 <p class="card-text">
                     {{ devicename.cpu_load }} %
                 </p>
@@ -64,9 +62,8 @@
         {% else %}
         <div class="card h-100 text-dark bg-warning mb-3">
         {% endif %}
-            <img src="" class="card-img-top" alt="graph">
             <div class="card-body">
-                <h5 class="card-title">Temperature:</h5>
+                <h4 class="card-title">Temperature:</h4>
                 <p class="card-text">
                     {{ devicename.temperature }} C
                 </p>
@@ -78,7 +75,7 @@
     <div class="col">
         <div class="card h-100">
             <div class="card-body">
-                <h5 class="card-title">Services:</h5>
+                <h4 class="card-title">Services:</h4>
                 <p class="card-text">
                     {% for service in services %}
                         {{ service.name }}:  {{ service.status }} <br />
