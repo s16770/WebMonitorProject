@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from .models import Device
 from .models import Zone
@@ -23,14 +23,14 @@ def deviceInfo(request, devicename):
 
 def alertDelete(request, alert_id):
 
-    if(alert_id!=None):
-        object = Alert.objects.get(id=alert_id) 
-        object.delete() 
+    obj = get_object_or_404(Alert, id=alert_id)
+    obj.delete()
+    return redirect('../')
 
-    context = {
-        'alerts': Alert.objects.all()
-    }
-    return render(request, 'WebMonitor/alerts.html', context)
+    #context = {
+    #    'object': obj
+    #}
+    #return render(request, 'WebMonitor/alerts.html', context)
 
 def alerts(request):
 
