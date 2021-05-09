@@ -27,7 +27,7 @@ def alert_notification(alert):
             send_mail(
                 'WebMonitor Alert!',
                 alert.message,
-                'notify@wmproject.com',
+                'webmonitors16770@gmail.com',
                 [u.email],
                 fail_silently=False,
             )
