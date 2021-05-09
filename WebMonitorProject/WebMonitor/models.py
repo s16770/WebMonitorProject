@@ -1,7 +1,9 @@
 from django.db import models
+from django.contrib.auth.models import User
 from bs4 import BeautifulSoup as BS
 from django.utils import timezone
 from urllib3.exceptions import InsecureRequestWarning
+from django.core.mail import send_mail
 from decimal import *
 import pytz
 import datetime
@@ -10,6 +12,8 @@ import time
 import random
 import requests
 import threading
+
+
 
 api_key = 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA=='
 remote_access = {'ssh', 'ssl', 'rsh', 'ms-rdp', 'telnet', 'anydesk', 'windows-remote-management'}
@@ -150,6 +154,19 @@ class Device(models.Model):
 
             time.sleep(15)
 
+    def alert_notification(alert):
+
+        users = User.objects.all()
+
+        for u in users:
+            send_mail(
+                'WebMonitor Alert!',
+                alert.message,
+                'notify@wmproject.com',
+                [u.email],
+                fail_silently=False,
+            )
+
     def checkConnection(device):
         
         try:
@@ -166,6 +183,7 @@ class Device(models.Model):
                 mes = device.name + ' interface state changed to ' + fun(val.stdout.decode()[0]) + ' at ' + pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
                 alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), category='Connection')
                 alert.save()
+                alert_notification(alert)
 
             device.status = fun(val.stdout.decode()[0])
             device.save()
@@ -192,6 +210,7 @@ class Device(models.Model):
                         mes = device.name + ' ' + service.name + ' status changed to ' + fun(val.stdout.decode()[0]) + ' at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
                         alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Service')
                         alert.save()
+                        alert_notification(alert)
 
             service.status = fun(val.stdout.decode()[0])
             service.save()
@@ -226,9 +245,11 @@ class Device(models.Model):
                         if  usedstorage_size/storage_size > device.used_storage_critical:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Storage')
                             alert.save()
+                            alert_notification(alert)
                         elif usedstorage_size/storage_size > device.used_storage_warning:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='Storage')
                             alert.save()
+                            alert_notification(alert)
 
                 device.storage = storage_size*storage_alloc_size/GB
                 device.used_storage = usedstorage_size*storage_alloc_size/GB
@@ -260,9 +281,11 @@ class Device(models.Model):
                         if cpu_load > device.cpu_load_critical:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='CPU')
                             alert.save()
+                            alert_notification(alert)
                         elif cpu_load > device.cpu_load_warning:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='CPU')
                             alert.save()
+                            alert_notification(alert)
 
                 device.cpu_load = cpu_load
                 device.save()
@@ -286,9 +309,11 @@ class Device(models.Model):
                         if temperature > device.temperature_critical:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Temperature')
                             alert.save()
+                            alert_notification(alert)
                         elif temperature > device.temperature_warning:
                             alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='Temperature')
                             alert.save()
+                            alert_notification(alert)
 
                 device.temperature = temperature
                 device.save()
@@ -332,9 +357,11 @@ class Device(models.Model):
             if result > device.session_count_critical:
                 alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Session count')
                 alert.save()
+                alert_notification(alert)
             elif result > device.session_count_warning:
                 alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='Session count')
                 alert.save()
+                alert_notification(alert)
 
         device.sessions = result
         device.save()
