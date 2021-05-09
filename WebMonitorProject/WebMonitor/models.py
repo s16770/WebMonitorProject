@@ -132,7 +132,6 @@ class Device(models.Model):
             
             for d in devices:
                 t1 = threading.Thread(target=Device.checkConnection, args=[d])
-                t2 = threading.Thread(target=Device.getSessions, args=[d, firewall])
                 t4 = threading.Thread(target=Device.checkStorage, args=[d])
                 t5 = threading.Thread(target=Device.checkCPU, args=[d])
                 t6 = threading.Thread(target=Device.checkTemperature, args=[d])
@@ -145,6 +144,7 @@ class Device(models.Model):
                     t7.start()
                     t7.join()
 
+                t2 = threading.Thread(target=Device.getSessions, args=[d, firewall])
                 for z in zones:
                     t3 = threading.Thread(target=Session.getSessionDetails, args=[firewall, d, z])
 
