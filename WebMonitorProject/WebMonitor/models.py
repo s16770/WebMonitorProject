@@ -13,13 +13,24 @@ import random
 import requests
 import threading
 
-
-
 api_key = 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA=='
 remote_access = {'ssh', 'ssl', 'rsh', 'ms-rdp', 'telnet', 'anydesk', 'windows-remote-management'}
 light = {'dns', 'ping', 'msrpc-base', 'ms-wmi'}
 
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+
+def alert_notification(alert):
+
+        users = User.objects.all()
+
+        for u in users:
+            send_mail(
+                'WebMonitor Alert!',
+                alert.message,
+                'notify@wmproject.com',
+                [u.email],
+                fail_silently=False,
+            )
 
 class Zone(models.Model):
     name = models.CharField(max_length=30)
@@ -153,19 +164,6 @@ class Device(models.Model):
                 t6.join()
 
             time.sleep(15)
-
-    def alert_notification(alert):
-
-        users = User.objects.all()
-
-        for u in users:
-            send_mail(
-                'WebMonitor Alert!',
-                alert.message,
-                'notify@wmproject.com',
-                [u.email],
-                fail_silently=False,
-            )
 
     def checkConnection(device):
         
