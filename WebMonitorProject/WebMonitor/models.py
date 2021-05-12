@@ -218,7 +218,7 @@ class Device(models.Model):
     def checkStorage(device):
 
         if device.storage_osOID != None and device.usedstorage_osOID != None:
-            try:
+            #try:
                 size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_osOID + " -op:" + device.storage_opOID + " -q"
                 usedsize_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.usedstorage_osOID + " -op:" + device.usedstorage_opOID + " -q"
                 size_val = '0'
@@ -259,12 +259,8 @@ class Device(models.Model):
                 device.used_storage_percentage = device.used_storage/device.storage
                 device.save()
 
-            except:
+            #except:
                 print(device.name + " snmpwalk failure - storage")
-
-            
-            #storage_his[s_counter] = device.used_storage
-            #timeline = [datetime.datetime.now() + datetime.timedelta(minutes=i) for i in range(480)]
 
 
     def checkCPU(device):
