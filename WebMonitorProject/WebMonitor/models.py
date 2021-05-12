@@ -197,6 +197,7 @@ class Device(models.Model):
 
             def fun(x):
                 return {
+                    '0': 'stopped',
                     '1': 'active',
                     '2': 'continue-pending',
                     '3': 'pause-pending',
@@ -218,7 +219,7 @@ class Device(models.Model):
     def checkStorage(device):
 
         if device.storage_osOID != None and device.usedstorage_osOID != None:
-            #try:
+            try:
                 size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_osOID + " -op:" + device.storage_opOID + " -q"
                 usedsize_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.usedstorage_osOID + " -op:" + device.usedstorage_opOID + " -q"
                 size_val = '0'
@@ -259,14 +260,14 @@ class Device(models.Model):
                 device.used_storage_percentage = device.used_storage/device.storage
                 device.save()
 
-            #except:
-                #print(device.name + " snmpwalk failure - storage")
+            except:
+                print(device.name + " snmpwalk failure - storage")
 
 
     def checkCPU(device):
         
         if device.cpu_osOID != None:   
-            #try:
+            try:
                 cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.cpu_osOID + " -op:" + device.cpu_opOID + " -q"
             
                 cpu_val = '0'
@@ -287,8 +288,8 @@ class Device(models.Model):
 
                 device.cpu_load = cpu_load
                 device.save()
-            #except:
-                #print(device.name + " snmpwalk failure - cpu")
+            except:
+                print(device.name + " snmpwalk failure - cpu")
 
     
     def checkTemperature(device):
