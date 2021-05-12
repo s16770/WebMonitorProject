@@ -217,21 +217,25 @@ class Device(models.Model):
 
     def checkStorage(device):
 
-        if device.storage_osOID != None and device.storage_alloc_osOID != None and device.usedstorage_osOID != None:
+        if device.storage_osOID != None and device.usedstorage_osOID != None:
             try:
-                alloc_size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_alloc_osOID + " -op:" + device.storage_alloc_opOID + " -q"
                 size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_osOID + " -op:" + device.storage_opOID + " -q"
                 usedsize_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.usedstorage_osOID + " -op:" + device.usedstorage_opOID + " -q"
                 size_val = '0'
                 size_alloc_val = '0'
                 usedsize_val = '0'
-        
+                
+                if(storage_alloc_osOID != None):
+                    alloc_size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_alloc_osOID + " -op:" + device.storage_alloc_opOID + " -q"
+                    size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
+                    storage_alloc_size = int(size_alloc_val.stdout.decode())
+                else:
+                    storage_alloc_size = 1024
+                
                 size_val = subprocess.run(size_com, shell=True, capture_output=True)
-                size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
                 usedsize_val = subprocess.run(usedsize_com, shell=True, capture_output=True)
             
                 storage_size = int(size_val.stdout.decode())
-                storage_alloc_size = int(size_alloc_val.stdout.decode())
                 usedstorage_size = int(usedsize_val.stdout.decode())
                 GB = 1024*1024*1024
 
