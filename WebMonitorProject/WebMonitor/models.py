@@ -260,7 +260,7 @@ class Device(models.Model):
                 device.save()
 
             #except:
-                print(device.name + " snmpwalk failure - storage")
+                #print(device.name + " snmpwalk failure - storage")
 
 
     def checkCPU(device):
@@ -288,7 +288,7 @@ class Device(models.Model):
                 device.cpu_load = cpu_load
                 device.save()
             #except:
-                print(device.name + " snmpwalk failure - cpu")
+                #print(device.name + " snmpwalk failure - cpu")
 
     
     def checkTemperature(device):
