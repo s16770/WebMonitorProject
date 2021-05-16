@@ -169,7 +169,7 @@ class Device(models.Model):
 
     def checkConnection(device):
         
-        try:
+        #try:
             command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.status_opOID) + " -op:" + device.status_opOID + " -q"
             val = subprocess.run(command, shell=True, capture_output=True)
 
@@ -187,13 +187,13 @@ class Device(models.Model):
 
             device.status = fun(val.stdout.decode()[0])
             device.save()
-        except:
-            print(device.name + " snmpwalk failure - connection")
+        #except:
+            #print(device.name + " snmpwalk failure - connection")
 
 
     def checkServices(device, service):
         
-        try:
+        #try:
             command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(service.service_opOID) + " -op:" + service.service_opOID + " -q"
             val = subprocess.run(command, shell=True, capture_output=True)
 
@@ -215,13 +215,13 @@ class Device(models.Model):
 
             service.status = fun(val.stdout.decode()[0])
             service.save()
-        except:
-            print(device.name + " snmpwalk failure - services")
+        #except:
+            #print(device.name + " snmpwalk failure - services")
 
     def checkStorage(device):
 
         if device.storage_opOID != None and device.usedstorage_opOID != None:
-            try:
+            #try:
                 size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.storage_opOID) + " -op:" + device.storage_opOID + " -q"
                 usedsize_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.usedstorage_opOID) + " -op:" + device.usedstorage_opOID + " -q"
                 size_val = '0'
@@ -262,14 +262,14 @@ class Device(models.Model):
                 device.used_storage_percentage = device.used_storage/device.storage
                 device.save()
 
-            except:
-                print(device.name + " snmpwalk failure - storage")
+            #except:
+                #print(device.name + " snmpwalk failure - storage")
 
 
     def checkCPU(device):
         
         if device.cpu_opOID != None:   
-            try:
+            #try:
                 cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.cpu_opOID) + " -op:" + device.cpu_opOID + " -q"
             
                 cpu_val = '0'
@@ -290,8 +290,8 @@ class Device(models.Model):
 
                 device.cpu_load = cpu_load
                 device.save()
-            except:
-                print(device.name + " snmpwalk failure - cpu")
+            #except:
+                #print(device.name + " snmpwalk failure - cpu")
 
     
     def checkTemperature(device):
