@@ -221,7 +221,7 @@ class Device(models.Model):
 
     def checkStorage(device):
 
-        if device.storage_osOID != None and device.usedstorage_osOID != None:
+        if device.storage_opOID != None and device.usedstorage_opOID != None:
             try:
                 size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.storage_opOID) + " -op:" + device.storage_opOID + " -q"
                 usedsize_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.usedstorage_opOID) + " -op:" + device.usedstorage_opOID + " -q"
@@ -269,7 +269,7 @@ class Device(models.Model):
 
     def checkCPU(device):
         
-        if device.cpu_osOID != None:   
+        if device.cpu_opOID != None:   
             try:
                 cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.cpu_opOID) + " -op:" + device.cpu_opOID + " -q"
             
@@ -297,7 +297,7 @@ class Device(models.Model):
     
     def checkTemperature(device):
         
-        if device.temperature_osOID != None:
+        if device.temperature_opOID != None:
             try:
                 temp_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.temperature_opOID) + " -op:" + device.temperature_opOID + " -q"
             
