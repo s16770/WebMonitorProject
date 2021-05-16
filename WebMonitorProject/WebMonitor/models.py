@@ -232,7 +232,8 @@ class Device(models.Model):
     def checkStorage(device):
 
         if device.storage_opOID != None and device.usedstorage_opOID != None:
-                print(os_oid(device.storage_opOID))
+                print(os_oid(device.storage_opOID) + 'koniec')
+                print(os_oid(device.usedstorage_opOID) + 'koniec')
                 print()
             #try:
                 size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.storage_opOID) + " -op:" + device.storage_opOID + " -q"
