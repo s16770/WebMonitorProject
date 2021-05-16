@@ -15,7 +15,7 @@
 <h2>{{ devicename.name }}<span class="badge bg-secondary">{{ devicename.type }}</span></h2>
 
 <div class="row row-cols-1 row-cols-md-4 g-4">
-    {% if devicename.storage_osOID != None %}
+    {% if devicename.storage_opOID != None %}
     <div class="col">
         {% if devicename.used_storage_percentage < devicename.used_storage_warning %}
         <div class="card h-100 text-dark bg-light mb-3">
@@ -35,7 +35,7 @@
         </div>
     </div>
     {% endif %}
-    {% if devicename.cpu_osOID != None %}
+    {% if devicename.cpu_opOID != None %}
     <div class="col">
         {% if devicename.cpu_load < devicename.cpu_load_warning %}
         <div class="card h-100 text-dark bg-light mb-3">
@@ -53,7 +53,7 @@
         </div>
     </div>
     {% endif %}
-    {% if devicename.temperature_osOID != None %}
+    {% if devicename.temperature_opOID != None %}
     <div class="col">
         {% if devicename.temperature < devicename.temperature_warning %}
         <div class="card h-100 text-dark bg-light mb-3">

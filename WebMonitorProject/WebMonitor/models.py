@@ -34,12 +34,19 @@ def alert_notification(alert):
 def os_oid(opOID):
 
     replace_char = opOID[len(opOID)-1]
-    replace_tmp = int(replace_char)
-    os_char = str(replace_tmp-1)
-
-    if replace_tmp == 0:
-        return opOID[:-2] + str(9)
     
+    if replace_char == '0':
+        replace_sec_char = opOID[len(opOID)-2]
+        if replace_sec_char == '1':
+            return opOID[:-2] + '9'
+        else:
+            replace_tmp = int(replace_sec_char)-1
+            os_char = str(replace_tmp)
+            return opOID[:-2] + os_char + '9'
+
+    replace_tmp = int(replace_char)-1
+    os_char = str(replace_tmp)
+
     return opOID[:-1] + os_char
 
 
