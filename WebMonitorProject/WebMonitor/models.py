@@ -13,7 +13,6 @@ import random
 import requests
 import threading
 
-api_key = 'LUFRPT1DTWoySUdJRnNmRTlUd1I1MXFBc3V0T2VxN0U9eWVhNm5ONk5RaXFwZEJvRG15NkNERTV3SzZQZG9TYlZDcDJSYk56eDZLWXBDSituRmVpbjdySUI5aUVrU21mRA=='
 remote_access = {'ssh', 'ssl', 'rsh', 'ms-rdp', 'telnet', 'anydesk', 'windows-remote-management'}
 light = {'dns', 'ping', 'msrpc-base', 'ms-wmi'}
 
