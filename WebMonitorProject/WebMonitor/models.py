@@ -228,7 +228,7 @@ class Device(models.Model):
                 size_alloc_val = '0'
                 usedsize_val = '0'
                 
-                if(device.storage_alloc_osOID != None):
+                if(device.storage_alloc_opOID != None):
                     alloc_size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.storage_alloc_opOID) + " -op:" + device.storage_alloc_opOID + " -q"
                     size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
                     storage_alloc_size = int(size_alloc_val.stdout.decode())
