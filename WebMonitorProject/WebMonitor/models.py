@@ -249,6 +249,9 @@ class Device(models.Model):
                     storage_alloc_size = 1024
                 
                 size_val = subprocess.run(size_com, shell=True, capture_output=True)
+                print()
+                print(size_val.stdout.decode())
+                print()
                 usedsize_val = subprocess.run(usedsize_com, shell=True, capture_output=True)
             
                 storage_size = int(size_val.stdout.decode())
