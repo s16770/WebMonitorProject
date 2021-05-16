@@ -32,6 +32,14 @@ def alert_notification(alert):
                 fail_silently=False,
             )
 
+def os_oid(opOID):
+
+    replace_char = opOID[len(opOID)-1]
+    os_char = str(int(replace_char)-1)
+
+    return opOID[:-1] + os_char
+
+
 class Zone(models.Model):
     name = models.CharField(max_length=30)
 
@@ -44,13 +52,14 @@ class Firewall(models.Model):
     domain_name = models.CharField(max_length=50)
     ipaddress = models.GenericIPAddressField()
     zones = models.ManyToManyField(Zone, null=True, blank=True)
+    api_key = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return self.domain_name
 
     def getZones(firewall):
             
-            payload = {'key': api_key, 
+            payload = {'key': firewall.api_key, 
                        'type': 'config',
                        'action': 'get',
                        'xpath': "/config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/zone"
@@ -104,17 +113,11 @@ class Device(models.Model):
     session_count_critical = models.IntegerField(null=True, blank=True)
 
     #oids
-    status_osOID = models.CharField(max_length=100, null=True, blank=True)
     status_opOID = models.CharField(max_length=100, null=True, blank=True)
-    temperature_osOID = models.CharField(max_length=100, null=True, blank=True)
     temperature_opOID = models.CharField(max_length=100, null=True, blank=True)
-    cpu_osOID = models.CharField(max_length=100, null=True, blank=True)
     cpu_opOID = models.CharField(max_length=100, null=True, blank=True)
-    storage_osOID = models.CharField(max_length=100, null=True, blank=True)
     storage_opOID = models.CharField(max_length=100, null=True, blank=True)
-    storage_alloc_osOID = models.CharField(max_length=100, null=True, blank=True)
     storage_alloc_opOID = models.CharField(max_length=100, null=True, blank=True)
-    usedstorage_osOID = models.CharField(max_length=100, null=True, blank=True)
     usedstorage_opOID = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
@@ -168,7 +171,7 @@ class Device(models.Model):
     def checkConnection(device):
         
         try:
-            command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.status_osOID + " -op:" + device.status_opOID + " -q"
+            command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.status_opOID) + " -op:" + device.status_opOID + " -q"
             val = subprocess.run(command, shell=True, capture_output=True)
 
             def fun(x):
@@ -192,7 +195,7 @@ class Device(models.Model):
     def checkServices(device, service):
         
         try:
-            command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + service.service_osOID + " -op:" + service.service_opOID + " -q"
+            command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(service.service_opOID) + " -op:" + service.service_opOID + " -q"
             val = subprocess.run(command, shell=True, capture_output=True)
 
             def fun(x):
@@ -220,14 +223,14 @@ class Device(models.Model):
 
         if device.storage_osOID != None and device.usedstorage_osOID != None:
             try:
-                size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_osOID + " -op:" + device.storage_opOID + " -q"
-                usedsize_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.usedstorage_osOID + " -op:" + device.usedstorage_opOID + " -q"
+                size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.storage_opOID) + " -op:" + device.storage_opOID + " -q"
+                usedsize_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.usedstorage_opOID) + " -op:" + device.usedstorage_opOID + " -q"
                 size_val = '0'
                 size_alloc_val = '0'
                 usedsize_val = '0'
                 
                 if(device.storage_alloc_osOID != None):
-                    alloc_size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.storage_alloc_osOID + " -op:" + device.storage_alloc_opOID + " -q"
+                    alloc_size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.storage_alloc_opOID) + " -op:" + device.storage_alloc_opOID + " -q"
                     size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
                     storage_alloc_size = int(size_alloc_val.stdout.decode())
                 else:
@@ -268,7 +271,7 @@ class Device(models.Model):
         
         if device.cpu_osOID != None:   
             try:
-                cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.cpu_osOID + " -op:" + device.cpu_opOID + " -q"
+                cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.cpu_opOID) + " -op:" + device.cpu_opOID + " -q"
             
                 cpu_val = '0'
                 cpu_val = subprocess.run(cpu_com, shell=True, capture_output=True)
@@ -296,7 +299,7 @@ class Device(models.Model):
         
         if device.temperature_osOID != None:
             try:
-                temp_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + device.temperature_osOID + " -op:" + device.temperature_opOID + " -q"
+                temp_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.temperature_opOID) + " -op:" + device.temperature_opOID + " -q"
             
                 temp_val = '0'
                 temp_val = subprocess.run(temp_com, shell=True, capture_output=True)
@@ -323,11 +326,11 @@ class Device(models.Model):
     
     def getSessions(device, firewall):
 
-        payload_dest = {'key': api_key, 
+        payload_dest = {'key': firewall.api_key, 
                        'type': 'op', 
                        'cmd': '<show><session><all><filter><destination>' + device.ipaddress + '</destination><count>yes</count></filter></all></session></show>'
                        }
-        payload_nat = {'key': api_key, 
+        payload_nat = {'key': firewall.api_key, 
                     'type': 'op', 
                     'cmd': '<show><session><all><filter><nat>both</nat></filter></all></session></show>'
                      }
@@ -382,7 +385,6 @@ class Service(models.Model):
     name = models.CharField(max_length=50)
     device = models.ForeignKey(Device, on_delete=models.PROTECT, default=None)
     status = models.CharField(max_length=50, editable=False, null=True)
-    service_osOID = models.CharField(max_length=200, null=True)
     service_opOID = models.CharField(max_length=200, null=True)
 
     def __str__(self):
@@ -401,17 +403,17 @@ class Session(models.Model):
 
     def getSessionDetails(firewall, device, zone):
         
-        payload = {'key': api_key, 
+        payload = {'key': firewall.api_key, 
                    'type': 'op', 
                    'cmd': '<show><session><all><filter><from>' + zone.name + '</from><destination>' + device.ipaddress +  '</destination></filter></all></session></show>'
                     }
 
-        payload_nat = {'key': api_key, 
+        payload_nat = {'key': firewall.api_key, 
                     'type': 'op', 
                     'cmd': '<show><session><all><filter><nat>both</nat></filter></all></session></show>'
                      }
 
-        payload_user = {'key': api_key, 
+        payload_user = {'key': firewall.api_key, 
                     'type': 'op', 
                     'cmd': '<show><user><ip-user-mapping><all></all></ip-user-mapping></user></show>'
                      }
