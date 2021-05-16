@@ -268,7 +268,8 @@ class Device(models.Model):
 
     def checkCPU(device):
         
-        if device.cpu_opOID != None:   
+        if device.cpu_opOID != None:
+                print(os_oid(device.cpu_opOID))
             #try:
                 cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.cpu_opOID) + " -op:" + device.cpu_opOID + " -q"
             
