@@ -15,6 +15,7 @@ import threading
 
 remote_access = {'ssh', 'ssl', 'rsh', 'ms-rdp', 'telnet', 'anydesk', 'windows-remote-management'}
 light = {'dns', 'ping', 'msrpc-base', 'ms-wmi'}
+GB = 1024*1024*1024
 
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
@@ -67,15 +68,15 @@ class Firewall(models.Model):
     def __str__(self):
         return self.domain_name
 
-    def getZones(firewall):
+    def getZones(self):
             
-            payload = {'key': firewall.api_key, 
+            payload = {'key': self.api_key, 
                        'type': 'config',
                        'action': 'get',
                        'xpath': "/config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/zone"
                        }
             
-            r = requests.get(url='https://' + firewall.domain_name + '/api/', params=payload, verify=False)
+            r = requests.get(url='https://' + self.domain_name + '/api/', params=payload, verify=False)
 
             response = r.content
             soup = BS(response, features='lxml')
@@ -136,30 +137,30 @@ class Device(models.Model):
     def poll():
 
         firewall = Firewall.objects.get(domain_name='pa-vm.wmproject.com')
-        Firewall.getZones(firewall)
+        firewall.getZones()
         zones = Zone.objects.all()
 
         while(True):
             devices = Device.objects.all()
             Session.objects.all().delete()
             
-            for d in devices:
-                t1 = threading.Thread(target=Device.checkConnection, args=[d])
-                t4 = threading.Thread(target=Device.checkStorage, args=[d])
-                t5 = threading.Thread(target=Device.checkCPU, args=[d])
-                t6 = threading.Thread(target=Device.checkTemperature, args=[d])
+            for device in devices:
+                t1 = threading.Thread(target=Device.checkConnection, args=[device])
+                t4 = threading.Thread(target=Device.checkStorage, args=[device])
+                t5 = threading.Thread(target=Device.checkCPU, args=[device])
+                t6 = threading.Thread(target=Device.checkTemperature, args=[device])
 
-                services = Service.objects.filter(device=d)
+                services = Service.objects.filter(device=device)
 
-                for s in services:
-                    t7 = threading.Thread(target=Device.checkServices, args=[d, s])
+                for service in services:
+                    t7 = threading.Thread(target=Device.checkServices, args=[device, service])
 
                     t7.start()
                     t7.join()
 
-                t2 = threading.Thread(target=Device.getSessions, args=[d, firewall])
-                for z in zones:
-                    t3 = threading.Thread(target=Session.getSessionDetails, args=[firewall, d, z])
+                t2 = threading.Thread(target=Device.getSessions, args=[device, firewall])
+                for zone in zones:
+                    t3 = threading.Thread(target=Session.getSessionDetails, args=[firewall, device, zone])
 
                     t3.start()
                     t3.join()
@@ -180,6 +181,8 @@ class Device(models.Model):
 
     def checkConnection(device):
         
+        if device.status_opOID == None or device.status_opOID.strip() == '':
+            return
         try:
             command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.status_opOID) + " -op:" + device.status_opOID + " -q"
             val = subprocess.run(command, shell=True, capture_output=True)
@@ -204,6 +207,8 @@ class Device(models.Model):
 
     def checkServices(device, service):
         
+        if service.service_opOID == None or service.service_opOID.strip() == '':
+            return
         try:
             command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(service.service_opOID) + " -op:" + service.service_opOID + " -q"
             val = subprocess.run(command, shell=True, capture_output=True)
@@ -217,12 +222,11 @@ class Device(models.Model):
                     '4': 'paused'
                 }.get(x, 'Unknown')
 
-            if service.status != None:
-                    if service.status != fun(val.stdout.decode()[0]) and fun(val.stdout.decode()[0]) != 'active':
-                        mes = device.name + ' ' + service.name + ' status changed to ' + fun(val.stdout.decode()[0]) + ' at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
-                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Service')
-                        alert.save()
-                        alert_notification(alert)
+            if service.status != None and service.status != fun(val.stdout.decode()[0]) and fun(val.stdout.decode()[0]) != 'active':
+                mes = device.name + ' ' + service.name + ' status changed to ' + fun(val.stdout.decode()[0]) + ' at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
+                alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Service')
+                alert.save()
+                alert_notification(alert)
 
             service.status = fun(val.stdout.decode()[0])
             service.save()
@@ -231,107 +235,109 @@ class Device(models.Model):
 
     def checkStorage(device):
 
-        if device.storage_opOID != None and device.usedstorage_opOID != None:
-            try:
-                size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.storage_opOID) + " -op:" + device.storage_opOID + " -q"
-                usedsize_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.usedstorage_opOID) + " -op:" + device.usedstorage_opOID + " -q"
-                size_val = '0'
-                size_alloc_val = '0'
-                usedsize_val = '0'
-                
-                if(device.storage_alloc_opOID != None):
-                    alloc_size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.storage_alloc_opOID) + " -op:" + device.storage_alloc_opOID + " -q"
-                    size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
-                    storage_alloc_size = int(size_alloc_val.stdout.decode())
-                else:
-                    storage_alloc_size = 1024
-                
-                size_val = subprocess.run(size_com, shell=True, capture_output=True)
-                usedsize_val = subprocess.run(usedsize_com, shell=True, capture_output=True)
+        if device.storage_opOID == None or device.usedstorage_opOID == None or device.storage_opOID.strip() == '' or device.usedstorage_opOID.strip() == '':
+            return
+        try:
+            size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.storage_opOID) + " -op:" + device.storage_opOID + " -q"
+            usedsize_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.usedstorage_opOID) + " -op:" + device.usedstorage_opOID + " -q"
+            size_val = '0'
+            size_alloc_val = '0'
+            usedsize_val = '0'
             
-                storage_size = int(size_val.stdout.decode())
-                usedstorage_size = int(usedsize_val.stdout.decode())
-                GB = 1024*1024*1024
+            if(device.storage_alloc_opOID != None):
+                alloc_size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.storage_alloc_opOID) + " -op:" + device.storage_alloc_opOID + " -q"
+                size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
+                storage_alloc_size = int(size_alloc_val.stdout.decode())
+            else:
+                storage_alloc_size = 1024
+            
+            size_val = subprocess.run(size_com, shell=True, capture_output=True)
+            usedsize_val = subprocess.run(usedsize_com, shell=True, capture_output=True)
+        
+            storage_size = int(size_val.stdout.decode())
+            usedstorage_size = int(usedsize_val.stdout.decode())
 
-                usp_tmp = (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB)*100
-                uss_tmp = usedstorage_size*storage_alloc_size/GB
-                if device.used_storage != None:
-                    if Decimal(device.used_storage).quantize(Decimal('.01')) != Decimal(uss_tmp).quantize(Decimal('.01')):
-                        mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(usp_tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
-                        if  usedstorage_size/storage_size > device.used_storage_critical:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Storage')
-                            alert.save()
-                            alert_notification(alert)
-                        elif usedstorage_size/storage_size > device.used_storage_warning:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='Storage')
-                            alert.save()
-                            alert_notification(alert)
+            usp_tmp = (usedstorage_size*storage_alloc_size/GB)/(storage_size*storage_alloc_size/GB)*100
+            uss_tmp = usedstorage_size*storage_alloc_size/GB
+            if device.used_storage != None:
+                if Decimal(device.used_storage).quantize(Decimal('.01')) != Decimal(uss_tmp).quantize(Decimal('.01')):
+                    mes = device.name + ' used storage percentage equal to ' + '{0:.2g}'.format(Decimal(str(usp_tmp))) + '% at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
+                    if  usedstorage_size/storage_size > device.used_storage_critical:
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Storage')
+                        alert.save()
+                        alert_notification(alert)
+                    elif usedstorage_size/storage_size > device.used_storage_warning:
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='Storage')
+                        alert.save()
+                        alert_notification(alert)
 
-                device.storage = storage_size*storage_alloc_size/GB
-                device.used_storage = usedstorage_size*storage_alloc_size/GB
-                device.free_storage = (((storage_size*storage_alloc_size) - (usedstorage_size*storage_alloc_size))/GB)
-                device.used_storage_percentage = device.used_storage/device.storage
-                device.save()
+            device.storage = storage_size*storage_alloc_size/GB
+            device.used_storage = usedstorage_size*storage_alloc_size/GB
+            device.free_storage = (((storage_size*storage_alloc_size) - (usedstorage_size*storage_alloc_size))/GB)
+            device.used_storage_percentage = device.used_storage/device.storage
+            device.save()
 
-            except:
-                print(device.name + " snmpwalk failure - storage")
+        except:
+            print(device.name + " snmpwalk failure - storage")
 
 
     def checkCPU(device):
         
-        if device.cpu_opOID != None:
-            try:
-                cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.cpu_opOID) + " -op:" + device.cpu_opOID + " -q"
+        if device.cpu_opOID == None or device.cpu_opOID.strip() == '':
+            return
+        try:
+            cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.cpu_opOID) + " -op:" + device.cpu_opOID + " -q"
+        
+            cpu_val = '0'
+            cpu_val = subprocess.run(cpu_com, shell=True, capture_output=True)
+            cpu_load = int(cpu_val.stdout.decode())
             
-                cpu_val = '0'
-                cpu_val = subprocess.run(cpu_com, shell=True, capture_output=True)
-                cpu_load = int(cpu_val.stdout.decode())
-                
-                if device.cpu_load != None:
-                    if device.cpu_load != cpu_load and device.cpu_load < cpu_load:
-                        mes = device.name + ' CPU load equal to ' + str(cpu_load) + '% at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
-                        if cpu_load > device.cpu_load_critical:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='CPU')
-                            alert.save()
-                            alert_notification(alert)
-                        elif cpu_load > device.cpu_load_warning:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='CPU')
-                            alert.save()
-                            alert_notification(alert)
+            if device.cpu_load != None:
+                if device.cpu_load != cpu_load and device.cpu_load < cpu_load:
+                    mes = device.name + ' CPU load equal to ' + str(cpu_load) + '% at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
+                    if cpu_load > device.cpu_load_critical:
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='CPU')
+                        alert.save()
+                        alert_notification(alert)
+                    elif cpu_load > device.cpu_load_warning:
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='CPU')
+                        alert.save()
+                        alert_notification(alert)
 
-                device.cpu_load = cpu_load
-                device.save()
-            except:
-                print(device.name + " snmpwalk failure - cpu")
+            device.cpu_load = cpu_load
+            device.save()
+        except:
+            print(device.name + " snmpwalk failure - cpu")
 
     
     def checkTemperature(device):
         
-        if device.temperature_opOID != None:
-            try:
-                temp_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.temperature_opOID) + " -op:" + device.temperature_opOID + " -q"
+        if device.temperature_opOID == None or device.temperature_opOID.strip() == '':
+            return
+        try:
+            temp_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.temperature_opOID) + " -op:" + device.temperature_opOID + " -q"
+        
+            temp_val = '0'
+            temp_val = subprocess.run(temp_com, shell=True, capture_output=True)
+            temperature = int(temp_val.stdout.decode())
             
-                temp_val = '0'
-                temp_val = subprocess.run(temp_com, shell=True, capture_output=True)
-                temperature = int(temp_val.stdout.decode())
-                
-                if device.temperature != None:
-                    if device.temperature != temperature and device.temperature < temperature:
-                        mes = device.name + ' temperature equal to ' + str(temperature) + 'C at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
-                        if temperature > device.temperature_critical:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Temperature')
-                            alert.save()
-                            alert_notification(alert)
-                        elif temperature > device.temperature_warning:
-                            alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='Temperature')
-                            alert.save()
-                            alert_notification(alert)
+            if device.temperature != None:
+                if device.temperature != temperature and device.temperature < temperature:
+                    mes = device.name + ' temperature equal to ' + str(temperature) + 'C at ' +  pytz.utc.localize(datetime.datetime.now()).strftime("%m/%d/%Y, %H:%M:%S")
+                    if temperature > device.temperature_critical:
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="critical", category='Temperature')
+                        alert.save()
+                        alert_notification(alert)
+                    elif temperature > device.temperature_warning:
+                        alert = Alert(device=device, message=mes, timestamp=pytz.utc.localize(datetime.datetime.now()), type="warning", category='Temperature')
+                        alert.save()
+                        alert_notification(alert)
 
-                device.temperature = temperature
-                device.save()
+            device.temperature = temperature
+            device.save()
 
-            except:
-                print(device.name + " snmpwalk failure - temperature")
+        except:
+            print(device.name + " snmpwalk failure - temperature")
         
     
     def getSessions(device, firewall):
@@ -355,7 +361,7 @@ class Device(models.Model):
 
         result_d = parsed_response_d.find('result').find('member').text
         nat_entries = soup_nat.find_all('entry')
-        result_nat = 0;
+        result_nat = 0
 
         for e in nat_entries:
             if e.xdst.get_text() == device.ipaddress:
