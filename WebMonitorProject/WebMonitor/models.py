@@ -57,13 +57,21 @@ class Zone(models.Model):
     def __str__(self):
         return self.name
 
+class Producent(models.Model):
+    
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
 
 class Firewall(models.Model):
 
     domain_name = models.CharField(max_length=50)
     ipaddress = models.GenericIPAddressField()
     zones = models.ManyToManyField(Zone, null=True, blank=True)
-    api_key = models.CharField(max_length=200, null=True, blank=True)
+    api_key = models.CharField(max_length=200, blank=True)
+    producent = models.ForeignKey(Producent, on_delete=models.PROTECT)
 
     def __str__(self):
         return self.domain_name
@@ -89,21 +97,12 @@ class Firewall(models.Model):
                    new_zone.save()
 
 
-class Producent(models.Model):
-    
-    producent_id = models.IntegerField()
-    name = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.name
-
-
 class Device(models.Model):
 
     name = models.CharField(max_length=50)
     community_name = models.CharField(max_length=50)
     type = models.CharField(max_length=30)
-    producent = models.ForeignKey(Producent, on_delete=models.PROTECT, null=True, blank=True, default=None)
+    producent = models.ForeignKey(Producent, on_delete=models.PROTECT)
     model = models.CharField(max_length=50)
     ipaddress = models.GenericIPAddressField()
     sessions = models.PositiveIntegerField(editable=False, null=True)
@@ -414,7 +413,7 @@ class Session(models.Model):
     user = models.CharField(max_length=50, null=True)
     application = models.CharField(max_length=30)
     transfer = models.PositiveIntegerField()
-    start_time = models.DateTimeField(null=True, default=None)
+    start_time = models.DateTimeField(default=None)
     alert_couse = models.CharField(max_length=50, null=True, default='')
 
     def getSessionDetails(firewall, device, zone):
