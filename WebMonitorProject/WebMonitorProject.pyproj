@@ -45,6 +45,9 @@
     <Compile Include="WebMonitorProject\wsgi.py" />
     <Compile Include="WebMonitor\admin.py" />
     <Compile Include="WebMonitor\apps.py" />
+    <Compile Include="WebMonitor\SnmpWalk.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="WebMonitor\migrations\__init__.py" />
     <Compile Include="WebMonitor\models.py" />
     <Compile Include="WebMonitor\tests.py" />

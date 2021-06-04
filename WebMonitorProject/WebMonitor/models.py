@@ -5,16 +5,16 @@ from django.utils import timezone
 from urllib3.exceptions import InsecureRequestWarning
 from django.core.mail import send_mail
 from decimal import *
+from WebMonitor.SnmpWalk import SnmpWalk
 import pytz
 import datetime
-import subprocess
 import time
 import random
 import requests
 import threading
 
 remote_access = {'ssh', 'ssl', 'rsh', 'ms-rdp', 'telnet', 'anydesk', 'windows-remote-management'}
-light = {'dns', 'ping', 'msrpc-base', 'ms-wmi'}
+light = {'msrpc-base', 'ms-wmi'}
 GB = 1024*1024*1024
 
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
@@ -23,12 +23,12 @@ def alert_notification(alert):
 
         users = User.objects.all()
 
-        for u in users:
+        for user in [u for u in users if u.email != None]:
             send_mail(
                 'WebMonitor Alert!',
                 alert.message,
                 'webmonitors16770@gmail.com',
-                [u.email],
+                [user.email],
                 fail_silently=False,
             )
 
@@ -91,10 +91,9 @@ class Firewall(models.Model):
 
             result = soup.find('zone').find_all('entry')
 
-            for elem in result:
-                if not Zone.objects.filter(name = elem.get('name')):
-                   new_zone = Zone(name = elem.get('name'))
-                   new_zone.save()
+            for elem in [el for el in result if not Zone.objects.filter(name = el.get('name'))]:
+                new_zone = Zone(name = elem.get('name'))
+                new_zone.save()
 
 
 class Device(models.Model):
@@ -184,7 +183,7 @@ class Device(models.Model):
             return
         try:
             command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.status_opOID) + " -op:" + device.status_opOID + " -q"
-            val = subprocess.run(command, shell=True, capture_output=True)
+            val = SnmpWalk.snmpWalkCall(command=command)
 
             def fun(x):
                 return {
@@ -210,7 +209,7 @@ class Device(models.Model):
             return
         try:
             command = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(service.service_opOID) + " -op:" + service.service_opOID + " -q"
-            val = subprocess.run(command, shell=True, capture_output=True)
+            val = SnmpWalk.snmpWalkCall(command=command)
 
             def fun(x):
                 return {
@@ -245,13 +244,13 @@ class Device(models.Model):
             
             if(device.storage_alloc_opOID != None):
                 alloc_size_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.storage_alloc_opOID) + " -op:" + device.storage_alloc_opOID + " -q"
-                size_alloc_val = subprocess.run(alloc_size_com, shell=True, capture_output=True)
+                size_alloc_val = SnmpWalk.snmpWalkCall(command=alloc_size_com)
                 storage_alloc_size = int(size_alloc_val.stdout.decode())
             else:
                 storage_alloc_size = 1024
             
-            size_val = subprocess.run(size_com, shell=True, capture_output=True)
-            usedsize_val = subprocess.run(usedsize_com, shell=True, capture_output=True)
+            size_val = SnmpWalk.snmpWalkCall(command=size_com) 
+            usedsize_val = SnmpWalk.snmpWalkCall(command=usedsize_com)
         
             storage_size = int(size_val.stdout.decode())
             usedstorage_size = int(usedsize_val.stdout.decode())
@@ -288,7 +287,7 @@ class Device(models.Model):
             cpu_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.cpu_opOID) + " -op:" + device.cpu_opOID + " -q"
         
             cpu_val = '0'
-            cpu_val = subprocess.run(cpu_com, shell=True, capture_output=True)
+            cpu_val = SnmpWalk.snmpWalkCall(command=cpu_com)
             cpu_load = int(cpu_val.stdout.decode())
             
             if device.cpu_load != None:
@@ -317,7 +316,7 @@ class Device(models.Model):
             temp_com = "SnmpWalk -v:2 -r:" + device.ipaddress + " -c:" + device.community_name + "  -os:" + os_oid(device.temperature_opOID) + " -op:" + device.temperature_opOID + " -q"
         
             temp_val = '0'
-            temp_val = subprocess.run(temp_com, shell=True, capture_output=True)
+            temp_val = SnmpWalk.snmpWalkCall(command=temp_com)
             temperature = int(temp_val.stdout.decode())
             
             if device.temperature != None:
@@ -362,11 +361,9 @@ class Device(models.Model):
         nat_entries = soup_nat.find_all('entry')
         result_nat = 0
 
-        for e in nat_entries:
-            if e.xdst.get_text() == device.ipaddress:
-                result_nat = result_nat + 1
+        for entry in [ent for ent in nat_entries if ent.xdst.get_text() == device.ipaddress]:
+            result_nat = result_nat + 1
 
-        
         result = int(result_d) + result_nat
 
         if device.session_count_warning != None and device.session_count_critical != None:
@@ -450,10 +447,8 @@ class Session(models.Model):
         result = soup.find_all('entry')
         result_nat = []
 
-        for e in nat_entries:
-            if e.xdst.get_text() == device.ipaddress:
-                result_nat.append(e)
-       
+        for entry in [ent for ent in nat_entries if ent.xdst.get_text() == device.ipaddress]:
+            result_nat.append(entry)
         
         session_details = result + result_nat
         alerts = Alert.objects.filter(device=device)
@@ -468,9 +463,8 @@ class Session(models.Model):
 
         for s in session_details:
             username = ""
-            for u in user_entries:
-                if s.source.get_text() == u.ip.get_text():
-                    username = u.user.get_text()
+            for us in [u for u in user_entries if s.source.get_text() == u.ip.get_text()]:
+                username = us.user.get_text()
             
             session_datetime_tmp = datetime.datetime.strptime(s.find('start-time').get_text(), "%a %B  %d %H:%M:%S %Y") 
             starttime = pytz.utc.localize(session_datetime_tmp)
@@ -478,22 +472,19 @@ class Session(models.Model):
             s_zone = Zone.objects.get(name=s.find('from').get_text())
             for alert in alerts:
                 if alert.category == 'Storage' and int(s.find('total-byte-count').get_text()) > storage_avg and starttime < alert.timestamp:
-                    for app in light:
-                        if(app == s.application.get_text()):
-                            break
-                        couse = alert.category
+                    for app in [a for a in light if(a == s.application.get_text())]:
+                        break
+                    couse = alert.category
                 elif alert.category == 'CPU' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
-                    for app in light:
-                        if(app == s.application.get_text()):
-                            break
-                        couse = alert.category
+                    for app in [a for a in light if(a == s.application.get_text())]:
+                        break
+                    couse = alert.category
                 elif alert.category == 'Session count' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=5):
                     couse = alert.category
                 elif alert.category == 'Connection' or alert.category == 'Service' and starttime < alert.timestamp:
-                    for app in remote_access:
-                        if(app == s.application.get_text()):
-                            couse = alert.category
-                            break
+                    for app in [a for a in remote_access if(app == s.application.get_text())]:
+                        couse = alert.category
+                        break
         
             session = Session(device=device, source_zone=s_zone, source_ip=s.source.get_text(), user=username, application=s.application.get_text(), transfer=int(s.find('total-byte-count').get_text()), start_time=starttime, alert_couse=couse)
             session.save()

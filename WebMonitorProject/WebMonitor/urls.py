@@ -7,7 +7,6 @@ from .models import Firewall
 import threading
 from .views import PostDeleteView
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.dashboard, name='webmonitorhome'),
