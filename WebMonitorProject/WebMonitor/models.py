@@ -466,7 +466,7 @@ class Session(models.Model):
             for us in [u for u in user_entries if s.source.get_text() == u.ip.get_text()]:
                 username = us.user.get_text()
             
-            session_datetime_tmp = datetime.datetime.strptime(s.find('start-time').get_text(), "%a %B  %d %H:%M:%S %Y") 
+            session_datetime_tmp = datetime.datetime.strptime(s.find('start-time').get_text(), "%a %b  %d %H:%M:%S %Y") 
             starttime = pytz.utc.localize(session_datetime_tmp)
             couse = ''
             s_zone = Zone.objects.get(name=s.find('from').get_text())
