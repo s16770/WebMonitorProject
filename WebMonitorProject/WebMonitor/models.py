@@ -51,14 +51,6 @@ def os_oid(opOID):
     return opOID[:-1] + os_char
 
 
-class Zone(models.Model):
-
-    name = models.CharField(max_length=30)
-    firewall = models.ForeignKey(Firewall, on_delete=models.CASCADE, null=True, blank=True)
-
-    def __str__(self):
-        return self.name
-
 class Producent(models.Model):
     
     name = models.CharField(max_length=50)
@@ -79,22 +71,31 @@ class Firewall(models.Model):
 
     def getZones(self):
             
-            payload = {'key': self.api_key, 
-                       'type': 'config',
-                       'action': 'get',
-                       'xpath': "/config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/zone"
-                       }
-            
-            r = requests.get(url='https://' + self.domain_name + '/api/', params=payload, verify=False)
+        payload = {'key': self.api_key, 
+                   'type': 'config',
+                   'action': 'get',
+                   'xpath': "/config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/zone"
+                   }
+        
+        r = requests.get(url='https://' + self.domain_name + '/api/', params=payload, verify=False)
 
-            response = r.content
-            soup = BS(response, features='lxml')
+        response = r.content
+        soup = BS(response, features='lxml')
 
-            result = soup.find('zone').find_all('entry')
+        result = soup.find('zone').find_all('entry')
 
-            for elem in [el for el in result if not Zone.objects.filter(name = el.get('name'))]:
-                new_zone = Zone(name = elem.get('name'))
-                new_zone.save()
+        for elem in [el for el in result if not Zone.objects.filter(name = el.get('name'))]:
+            new_zone = Zone(name = elem.get('name'))
+            new_zone.save()
+
+
+class Zone(models.Model):
+
+    name = models.CharField(max_length=30)
+    firewall = models.ForeignKey(Firewall, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Device(models.Model):
