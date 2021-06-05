@@ -52,7 +52,9 @@ def os_oid(opOID):
 
 
 class Zone(models.Model):
+
     name = models.CharField(max_length=30)
+    firewall = models.ForeignKey(Firewall, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -69,7 +71,6 @@ class Firewall(models.Model):
 
     domain_name = models.CharField(max_length=50)
     ipaddress = models.GenericIPAddressField()
-    zones = models.ManyToManyField(Zone, null=True, blank=True)
     api_key = models.CharField(max_length=200, blank=True)
     producent = models.ForeignKey(Producent, on_delete=models.PROTECT)
 
