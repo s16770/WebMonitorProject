@@ -177,7 +177,7 @@ class Device(models.Model):
                 t5.join()
                 t6.join()
 
-            time.sleep(15)
+            time.sleep(60)
 
     def checkConnection(device):
         
