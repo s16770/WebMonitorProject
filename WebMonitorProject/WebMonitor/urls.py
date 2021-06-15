@@ -8,8 +8,9 @@ import threading
 from .views import PostDeleteView
 
 urlpatterns = [
+    path('', views.start, name='startingpage'),
     path('admin/', admin.site.urls),
-    path('', views.dashboard, name='webmonitorhome'),
+    path('dashboard/', views.dashboard, name='webmonitorhome'),
     path('device/<devicename>/', views.deviceInfo, name='wmdeviceinfo'),
     path('alerts/', views.alerts, name='wmalerts'),
     path('alerts/<int:pk>/delete/', PostDeleteView.as_view(), name='delete_alert') 

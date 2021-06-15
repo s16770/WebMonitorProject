@@ -7,6 +7,10 @@ from .models import Session
 from .models import Service
 from .models import Alert
 
+def start(request):
+
+    return render(request, 'WebMonitor/login.html')
+
 def dashboard(request):
     context = {
         'devices': Device.objects.all()
