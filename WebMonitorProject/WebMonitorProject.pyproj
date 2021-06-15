@@ -60,6 +60,7 @@
   <ItemGroup>
     <Content Include="libman.json" />
     <Content Include="requirements.txt" />
+    <Content Include="Users\static\WebMonitor\mainUser.css" />
     <Content Include="Users\templates\Users\login.html" />
     <Content Include="Users\templates\Users\logout.html" />
     <Content Include="WebMonitor\static\WebMonitor\main.css" />
@@ -72,6 +73,8 @@
   <ItemGroup>
     <Folder Include="Users\" />
     <Folder Include="Users\migrations\" />
+    <Folder Include="Users\static\" />
+    <Folder Include="Users\static\WebMonitor\" />
     <Folder Include="Users\templates\" />
     <Folder Include="Users\templates\Users\" />
     <Folder Include="WebMonitorProject\" />
