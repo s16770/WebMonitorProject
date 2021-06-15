@@ -9,7 +9,7 @@ from .models import Alert
 
 def start(request):
 
-    return render(request, 'WebMonitor/login.html')
+    return render(request, 'Users/login.html')
 
 def dashboard(request):
     context = {
