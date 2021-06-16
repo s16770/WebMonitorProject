@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.views.generic import DeleteView
-from django.contrib.auth import views as auth_views
 from django.http import HttpResponse
 from .models import Device
 from .models import Zone
@@ -8,9 +7,6 @@ from .models import Session
 from .models import Service
 from .models import Alert
 
-def start(request):
-
-    return render(request, auth_views.LoginView.as_view(template_name='Users/login.html'))
 
 def dashboard(request):
     context = {
