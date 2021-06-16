@@ -8,3 +8,5 @@ admin.site.register(Device)
 admin.site.register(Producent)
 admin.site.register(Firewall)
 admin.site.register(Service)
+
+admin.site.site_url = "/dashboard"

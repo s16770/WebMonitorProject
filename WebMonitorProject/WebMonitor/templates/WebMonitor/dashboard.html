@@ -1,7 +1,7 @@
 {% extends "WebMonitor/base.html" %}
 
 {% block headcontent %}
-    <meta http-equiv="refresh" content="10">
+    <meta http-equiv="refresh" content="60">
 {% endblock headcontent %}
 
 {% block content %}
@@ -18,7 +18,7 @@
         <tbody>
             {% for device in devices %}
                 <tr>
-                    <th scope="row" onclick="location.href = 'device/{{device.name}}'">{{ device.name }}</th>
+                    <th scope="row" onclick="location.href = '/device/{{device.name}}'">{{ device.name }}</th>
                     <td>{{ device.ipaddress }}</td>
                     <td>{{ device.sessions }}</td>
                     <td>{{ device.status }}</td>
@@ -27,7 +27,7 @@
         </tbody>
     </table>
 
-    <button type="button" class="btn btn-dark" onclick="location.href = 'admin/WebMonitor/device/add/'">Add device</button>
+    <button type="button" class="btn btn-dark" onclick="location.href = '/admin/WebMonitor/device/add/'">Add device</button>
 
     <footer class="footer">
         <div class="container">
