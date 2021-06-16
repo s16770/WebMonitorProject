@@ -9,7 +9,7 @@ from .models import Alert
 
 def start(request):
 
-    return render(request, 'Users/login.html')
+    return render(request, auth_views.LoginView.as_view(template_name='Users/login.html'))
 
 def dashboard(request):
     context = {
