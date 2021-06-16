@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import DeleteView
+from django.contrib.auth import views as auth_views
 from django.http import HttpResponse
 from .models import Device
 from .models import Zone
