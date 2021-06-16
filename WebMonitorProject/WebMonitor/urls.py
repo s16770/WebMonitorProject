@@ -9,7 +9,7 @@ import threading
 from .views import PostDeleteView
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='login/', permanent=True)),
+    path('', RedirectView.as_view(url='login/')),
     path('admin/', admin.site.urls),
     path('dashboard/', views.dashboard, name='webmonitorhome'),
     path('device/<devicename>/', views.deviceInfo, name='wmdeviceinfo'),
