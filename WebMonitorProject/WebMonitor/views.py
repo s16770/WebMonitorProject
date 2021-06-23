@@ -25,7 +25,6 @@ def deviceInfo(request, devicename):
     }
     return render(request, 'WebMonitor/deviceInfo.html', context)
 
-@login_required(login_url='/login/')
 class PostDeleteView(DeleteView):
     model = Alert
     success_url = '/alerts/'
