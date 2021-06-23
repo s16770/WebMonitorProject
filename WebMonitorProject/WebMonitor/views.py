@@ -15,6 +15,7 @@ def dashboard(request):
     }
     return render(request, 'WebMonitor/dashboard.html', context)
 
+@login_required(login_url='/login/')
 def deviceInfo(request, devicename):
     context = {
         'devicename': Device.objects.get(name=devicename),
@@ -24,11 +25,12 @@ def deviceInfo(request, devicename):
     }
     return render(request, 'WebMonitor/deviceInfo.html', context)
 
-
+@login_required(login_url='/login/')
 class PostDeleteView(DeleteView):
     model = Alert
     success_url = '/alerts/'
 
+@login_required(login_url='/login/')
 def alerts(request):
 
     context = {
