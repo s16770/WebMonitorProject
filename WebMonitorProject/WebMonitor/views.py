@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import DeleteView
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from .models import Device
 from .models import Zone
@@ -7,7 +8,7 @@ from .models import Session
 from .models import Service
 from .models import Alert
 
-
+@login_required(login_url='/login/')
 def dashboard(request):
     context = {
         'devices': Device.objects.all()
