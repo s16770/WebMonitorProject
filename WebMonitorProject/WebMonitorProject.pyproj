@@ -63,6 +63,7 @@
     <Content Include="Users\static\WebMonitor\mainUser.css" />
     <Content Include="Users\templates\Users\login.html" />
     <Content Include="Users\templates\Users\logout.html" />
+    <Content Include="web.config" />
     <Content Include="WebMonitor\static\WebMonitor\main.css" />
     <Content Include="WebMonitor\templates\WebMonitor\alerts.html" />
     <Content Include="WebMonitor\templates\WebMonitor\base.html" />
