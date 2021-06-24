@@ -1,4 +1,4 @@
 django~=2.2
-crispy_forms
+django-crispy-forms
 requests
 bs4
