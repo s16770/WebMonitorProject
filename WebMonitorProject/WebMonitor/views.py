@@ -10,6 +10,7 @@ from .models import Alert
 
 @login_required(login_url='/login/')
 def dashboard(request):
+    """funkcja obslugujaca prezentacje panelu glownego aplikacji"""
     context = {
         'devices': Device.objects.all()
     }
@@ -17,6 +18,7 @@ def dashboard(request):
 
 @login_required(login_url='/login/')
 def deviceInfo(request, devicename):
+    """funkcja obslugujaca prezentacje panelu szczegolowych informacji o urzadzeniu """
     context = {
         'devicename': Device.objects.get(name=devicename),
         'zones': Zone.objects.all(),
@@ -26,11 +28,13 @@ def deviceInfo(request, devicename):
     return render(request, 'WebMonitor/deviceInfo.html', context)
 
 class PostDeleteView(DeleteView):
+    """funkcja obslugujaca usuniecie alertu oraz prezentacje panelu potwierdzenia usuniecia"""
     model = Alert
     success_url = '/alerts/'
 
 @login_required(login_url='/login/')
 def alerts(request):
+    """funkcja obslugujaca prezentacje panelu alertow"""
 
     context = {
         'alerts': Alert.objects.all()

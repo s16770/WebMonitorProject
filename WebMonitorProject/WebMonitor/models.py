@@ -20,19 +20,21 @@ GB = 1024*1024*1024
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 def alert_notification(alert):
+    """funkcja sluzaca wyslaniu powiadomienia e-mail"""
 
-        users = User.objects.all()
+    users = User.objects.all()
 
-        for user in [u for u in users if u.email != None]:
-            send_mail(
-                'WebMonitor Alert!',
-                alert.message,
-                'webmonitors16770@gmail.com',
-                [user.email],
-                fail_silently=False,
-            )
+    for user in [u for u in users if u.email != None]:
+        send_mail(
+            'WebMonitor Alert!',
+            alert.message,
+            'webmonitors16770@gmail.com',
+            [user.email],
+            fail_silently=False,
+        )
 
 def os_oid(opOID):
+    """funkcja generujaca OID poczatkowy (os) na podstawie OIDu koncowego (op)"""
 
     replace_char = opOID[len(opOID)-1]
     
@@ -70,6 +72,7 @@ class Firewall(models.Model):
         return self.domain_name
 
     def getZones(self):
+        """funkcja pobierajaca strefy bezpieczenstwa z zapory sieciowej Palo Alto Networks"""
             
         payload = {'key': self.api_key, 
                    'type': 'config',
@@ -135,6 +138,7 @@ class Device(models.Model):
         return self.name
 
     def poll():
+        """funkcja wywolujaca asynchronicznie inne funkcje sluzace do zbierania danych z urzadzen i zapory sieciowej"""
 
         firewall = Firewall.objects.get(domain_name='pa-vm.wmproject.com')
         firewall.getZones()
@@ -180,6 +184,7 @@ class Device(models.Model):
             time.sleep(60)
 
     def checkConnection(device):
+        """funkcja sprawdzajaca stan monitorowanego interfejsu"""
         
         if device.status_opOID == None or device.status_opOID.strip() == '':
             return
@@ -206,6 +211,7 @@ class Device(models.Model):
 
 
     def checkServices(device, service):
+        """funkcja sprawdzajaca stan serwisow hostowanych na urzadzeniu"""
         
         if service.service_opOID == None or service.service_opOID.strip() == '':
             return
@@ -234,6 +240,7 @@ class Device(models.Model):
             print(device.name + " snmpwalk failure - services")
 
     def checkStorage(device):
+        """funkcja sprawdzajaca wielkosc oraz zajetosc dysku monitorowanego urzadzenia"""
 
         if device.storage_opOID == None or device.usedstorage_opOID == None or device.storage_opOID.strip() == '' or device.usedstorage_opOID.strip() == '':
             return
@@ -282,6 +289,7 @@ class Device(models.Model):
 
 
     def checkCPU(device):
+        """funkcja sprawdzajaca obciazenie CPU monitorowanego urzadzenia"""
         
         if device.cpu_opOID == None or device.cpu_opOID.strip() == '':
             return
@@ -311,6 +319,7 @@ class Device(models.Model):
 
     
     def checkTemperature(device):
+        """funkcja sprawdzajaca temperature procesora/plyty glownej monitorowanego urzadzenia"""
         
         if device.temperature_opOID == None or device.temperature_opOID.strip() == '':
             return
@@ -341,6 +350,7 @@ class Device(models.Model):
         
     
     def getSessions(device, firewall):
+        """funkcja sprawdzajaca ilosc sesji zestawionych do monitorowanego urzadzenia"""
 
         payload_dest = {'key': firewall.api_key, 
                        'type': 'op', 
@@ -416,6 +426,7 @@ class Session(models.Model):
     alert_couse = models.CharField(max_length=50, null=True, default='')
 
     def getSessionDetails(firewall, device, zone):
+        """funkcja pobierajaca parametry sesji zestawionych do monitorowanego urzadzenia"""
         
         payload = {'key': firewall.api_key, 
                    'type': 'op', 

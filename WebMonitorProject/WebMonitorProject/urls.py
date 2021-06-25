@@ -16,7 +16,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls')) 
 """
 
-# Uncomment next two lines to enable admin:
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 
