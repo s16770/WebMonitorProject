@@ -3,3 +3,4 @@ django-crispy-forms
 requests
 bs4
 wfastcgi
+lxml
