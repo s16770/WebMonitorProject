@@ -1,4 +1,11 @@
+header h2{
+    margin-top:0px;
+}
+header h1{
+    margin-top:0px;
+}
 body{
+    margin-top:0px;
 }
 footer{
     position: fixed;
