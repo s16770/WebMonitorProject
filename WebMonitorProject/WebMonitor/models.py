@@ -485,14 +485,17 @@ class Session(models.Model):
             couse = ''
             s_zone = Zone.objects.get(name=s.find('from').get_text())
             for alert in alerts:
+                c = 0
                 if alert.category == 'Storage' and int(s.find('total-byte-count').get_text()) > storage_avg and starttime < alert.timestamp:
-                    for app in [a for a in light if(a == s.application.get_text())]:
-                        break
-                    couse = alert.category
+                    for app in [a for a in light if a == s.application.get_text()]:
+                        c += 1
+                    if c == 0:
+                        couse = alert.category
                 elif alert.category == 'CPU' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=15):
-                    for app in [a for a in light if(a == s.application.get_text())]:
-                        break
-                    couse = alert.category
+                    for app in [a for a in light if a == s.application.get_text()]:
+                        c += 1
+                    if c == 0:
+                        couse = alert.category
                 elif alert.category == 'Session count' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=5):
                     couse = alert.category
                 elif alert.category == 'Connection' or alert.category == 'Service' and starttime < alert.timestamp:
