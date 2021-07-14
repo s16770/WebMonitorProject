@@ -146,6 +146,8 @@ class Device(models.Model):
 
         while(True):
             devices = Device.objects.all()
+
+            time.sleep(3)
             Session.objects.all().delete()
             
             for device in devices:
@@ -181,7 +183,7 @@ class Device(models.Model):
                 t5.join()
                 t6.join()
 
-            time.sleep(60)
+            time.sleep(50)
 
     def checkConnection(device):
         """funkcja sprawdzajaca stan monitorowanego interfejsu"""
@@ -498,7 +500,7 @@ class Session(models.Model):
                 elif alert.category == 'Session count' and starttime < alert.timestamp and starttime > alert.timestamp - datetime.timedelta(minutes=5):
                     couse = alert.category
                 elif alert.category == 'Connection' or alert.category == 'Service' and starttime < alert.timestamp:
-                    for app in [a for a in remote_access if(app == s.application.get_text())]:
+                    for app in [a for a in remote_access if(a == s.application.get_text())]:
                         couse = alert.category
                         break
         
