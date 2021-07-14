@@ -460,9 +460,8 @@ class Session(models.Model):
         result = soup.find_all('entry')
         result_nat = []
 
-        if(zone.name != 'Trust'):
-            for entry in [ent for ent in nat_entries if ent.xdst.get_text() == device.ipaddress]:
-                result_nat.append(entry)
+        for entry in [ent for ent in nat_entries if ent.xdst.get_text() == device.ipaddress and ent.find('from').get_text() == zone]:
+            result_nat.append(entry)
         
         session_details = result + result_nat
         alerts = Alert.objects.filter(device=device)
